@@ -1,0 +1,49 @@
+---
+run:
+  concurency: 4
+  deadline: 2m
+  issues-exit-code: 1
+  skip-files:
+    - ".+_test.go"
+    - "vendor/*"
+
+output:
+  format: tab
+  print-issued-lines: true
+  print-linter-name: true
+
+linters:
+  enable-all: true
+  disable:
+    - errcheck
+    - wsl
+    - goconst
+    # - funlen
+    # - gci
+    # - gochecknoglobals
+    # - gocritic
+    # - godot
+    # - gofumpt
+    # - gosec
+    # - lll
+    # - maligned
+    # - nestif
+    # - prealloc
+    # - unconvert
+    # - whitespace
+    # - goerr113
+    # - gomnd
+    # - nlreturn
+    # - godox
+    # - stylecheck
+    # - gofmt
+    # - gochecknoinits
+    # - gocognit
+    # - goimports
+  fast: false
+
+issues:
+  exclude-use-default: false
+  max-issues-per-linter: 100
+  max-same-issues: 4
+  new: false

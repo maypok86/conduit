@@ -35,7 +35,7 @@ fmt: ## Run format tools on all go files
 
 .PHONY: lint
 lint: ## Run all the linters
-	golangci-lint run ./...
+	golangci-lint run -v --color=always --timeout 4m ./...
 
 .PHONY: test.unit
 test.unit: ## Run all unit tests
