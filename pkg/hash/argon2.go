@@ -1,3 +1,4 @@
+// Package hash implements the password hashing algorithms.
 package hash
 
 import (
