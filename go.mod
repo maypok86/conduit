@@ -1,4 +1,4 @@
-module github.com/maypok86/go-realworld-fasthttp
+module github.com/maypok86/conduit
 
 go 1.18
 
