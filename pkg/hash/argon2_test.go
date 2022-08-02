@@ -1,14 +1,17 @@
-package hash
+package hash_test
 
 import (
 	"testing"
 
 	"github.com/bxcodec/faker/v3"
+	"github.com/maypok86/conduit/pkg/hash"
 	"github.com/stretchr/testify/require"
 )
 
 func TestArgon2Hasher(t *testing.T) {
-	hasher := NewArgon2Hasher()
+	t.Parallel()
+
+	hasher := hash.NewArgon2Hasher()
 	password := faker.Password()
 
 	firstHashedPassword, err := hasher.Hash(password)
@@ -18,7 +21,7 @@ func TestArgon2Hasher(t *testing.T) {
 	require.NoError(t, hasher.Check(password, firstHashedPassword))
 
 	wrongPassword := faker.Password()
-	require.EqualError(t, hasher.Check(wrongPassword, firstHashedPassword), ErrIncorrectPassword.Error())
+	require.EqualError(t, hasher.Check(wrongPassword, firstHashedPassword), hash.ErrIncorrectPassword.Error())
 
 	secondHashedPassword, err := hasher.Hash(password)
 	require.NoError(t, err)
