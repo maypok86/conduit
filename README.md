@@ -16,8 +16,18 @@
 
 ## 📖 Contents
 
+- [Contribute](#contribute)
 - [License](#license)
+
+## 👏 Contribute <a id="contribute" />
+
+Contributions are welcome as always, before submitting a new PR please make sure to open a new issue so community members can discuss it.
+For more information please see [contribution guidelines](./CONTRIBUTING.md).
+
+Additionally, you might find existing open issues which can help with improvements.
+
+This project follows a standard [code of conduct](./CODE_OF_CONDUCT.md) so that you can understand what actions will and will not be tolerated.
 
 ## 📄 License <a id="license" />
 
-This project is MIT licensed, as found in the [LICENSE](./LICENSE)
+This project is MIT licensed, as found in the [LICENSE](./LICENSE).
