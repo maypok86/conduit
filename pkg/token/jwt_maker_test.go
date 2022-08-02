@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/bxcodec/faker/v3"
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/maypok86/conduit/pkg/token"
 	"github.com/stretchr/testify/require"
 )
