@@ -16,6 +16,7 @@ linters:
   disable:
     - exhaustruct
     - exhaustivestruct
+    - nosprintfhostport
   fast: false
 
 linters-settings:
