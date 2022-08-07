@@ -17,6 +17,8 @@ linters:
     - exhaustruct
     - exhaustivestruct
     - nosprintfhostport
+    - gochecknoglobals
+    - forbidigo
   fast: false
 
 linters-settings:
