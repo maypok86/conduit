@@ -12,22 +12,41 @@ import (
 	"github.com/maypok86/conduit/internal/config"
 	"github.com/maypok86/conduit/internal/controller/http"
 	"github.com/maypok86/conduit/pkg/httpserver"
+	"github.com/maypok86/conduit/pkg/postgres"
 	"go.uber.org/zap"
 )
 
 // App is a application interface.
 type App struct {
 	logger     *zap.Logger
+	db         *postgres.Postgres
 	httpServer httpserver.Server
 }
 
 // New creates a new App.
 func New(ctx context.Context, logger *zap.Logger) (App, error) {
 	cfg := config.Get()
+
+	postgresInstance, err := postgres.New(
+		ctx,
+		postgres.NewConnectionConfig(
+			cfg.Postgres.Host,
+			cfg.Postgres.Port,
+			cfg.Postgres.DBName,
+			cfg.Postgres.User,
+			cfg.Postgres.Password,
+			cfg.Postgres.SSLMode,
+		),
+	)
+	if err != nil {
+		return App{}, fmt.Errorf("can not connect to postgres: %w", err)
+	}
+
 	handler := http.NewHandler()
 
 	return App{
 		logger: logger,
+		db:     postgresInstance,
 		httpServer: httpserver.New(
 			handler.Init(logger),
 			httpserver.WithHost(cfg.HTTP.Host),
