@@ -15,7 +15,7 @@ build: ## Build project
 
 .PHONY: run
 run: build ## Run project in local environment
-	$(BIN)
+	bash scripts/run.sh $(BIN)
 
 .PHONY: up
 up: ## Run project in docker environment
