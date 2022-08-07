@@ -24,8 +24,27 @@ services:
     ports:
       - ${HTTP_PORT}:${HTTP_PORT}
     depends_on:
-      - postgres
+      - migrator
   
+  migrator:
+    container_name: conduit_migrator
+    build:
+      context: ..
+      dockerfile: build/migrator/Dockerfile
+      args:
+        GOOSE_VERSION: ${GOOSE_VERSION:-3.6.0}
+    environment:
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
+      - POSTGRES_DBNAME
+      - POSTGRES_SSLMODE
+    restart: on-failure
+    volumes:
+      - ../migrations:/migrations
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   postgres:
     image: postgres:13.0-alpine
     container_name: wb-l0_postgres
