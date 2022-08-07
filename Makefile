@@ -49,6 +49,10 @@ cover: test.unit ## Run all the tests and opens the coverage report
 .PHONY: ci
 ci: lint test.unit ## Run all the tests and code checks
 
+.PHONY: openapi
+openapi: ## Generate files from openapi spec
+	bash scripts/openapi_http.sh $(PROJECT) internal/controller/http/port port
+
 .PHONY: clean
 clean: ## Remove temporary files
 	@go clean
