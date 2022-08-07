@@ -23,11 +23,11 @@ up: ## Run project in docker environment
 
 .PHONY: down
 down: ## Stop project in docker environment
-	docker-compose -f deployments/docker-compose.yml -p $(PROJECT) --env-file .env down
+	docker compose -f deployments/docker-compose.yml -p $(PROJECT) --env-file .env down
 
 .PHONY: logs
 logs: ## View project logs from the docker container
-	docker-compose -f deployments/docker-compose.yml -p $(PROJECT) logs -f
+	docker compose -f deployments/docker-compose.yml -p $(PROJECT) logs -f
 
 .PHONY: fmt
 fmt: ## Run format tools on all go files

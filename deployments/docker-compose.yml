@@ -2,8 +2,24 @@ version: '3.8'
 
 services:
   frontend:
+    container_name: conduit_frontend
     build:
       context: ../build/frontend
     ports:
       - "8000:80"
     restart: on-failure
+    depends_on:
+      - backend
+
+  backend:
+    container_name: conduit_backend
+    build:
+      context: ..
+      dockerfile: build/backend/Dockerfile
+      args:
+        LDFLAGS: ${LDFLAGS}
+    env_file:
+      - ../.env
+    restart: unless-stopped
+    ports:
+      - ${HTTP_PORT}:${HTTP_PORT}
