@@ -2,7 +2,7 @@
 
 set -e
 
-find . -name '*.go' -not -wholename './vendor/*' |
+find . -name '*.go' -not -wholename './vendor/*' -not -wholename '*.gen.go' |
 while read -r file
 do
   golines -m 140 -w "$file"
