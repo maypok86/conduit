@@ -15,7 +15,7 @@ build: ## Build project
 
 .PHONY: run
 run: build ## Run project in local environment
-	$(BIN)
+	bash scripts/run.sh $(BIN)
 
 .PHONY: up
 up: ## Run project in docker environment
@@ -23,11 +23,11 @@ up: ## Run project in docker environment
 
 .PHONY: down
 down: ## Stop project in docker environment
-	docker-compose -f deployments/docker-compose.yml -p $(PROJECT) --env-file .env down
+	docker compose -f deployments/docker-compose.yml -p $(PROJECT) --env-file .env down
 
 .PHONY: logs
 logs: ## View project logs from the docker container
-	docker-compose -f deployments/docker-compose.yml -p $(PROJECT) logs -f
+	docker compose -f deployments/docker-compose.yml -p $(PROJECT) logs -f
 
 .PHONY: fmt
 fmt: ## Run format tools on all go files
@@ -48,6 +48,10 @@ cover: test.unit ## Run all the tests and opens the coverage report
 
 .PHONY: ci
 ci: lint test.unit ## Run all the tests and code checks
+
+.PHONY: openapi
+openapi: ## Generate files from openapi spec
+	bash scripts/openapi_http.sh $(PROJECT) internal/controller/http/port port
 
 .PHONY: clean
 clean: ## Remove temporary files

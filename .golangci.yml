@@ -17,6 +17,8 @@ linters:
     - exhaustruct
     - exhaustivestruct
     - nosprintfhostport
+    - gochecknoglobals
+    - forbidigo
   fast: false
 
 linters-settings:
@@ -26,6 +28,10 @@ linters-settings:
         json: snake
 
 issues:
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - varnamelen
   exclude-use-default: false
   max-issues-per-linter: 100
   max-same-issues: 4
