@@ -28,8 +28,8 @@ func NewJWTMaker(secretKey string) (JWTMaker, error) {
 }
 
 // CreateToken creates a new JWT web token for a specific username and duration.
-func (maker JWTMaker) CreateToken(username string, duration time.Duration) (string, error) {
-	payload, err := NewPayload(username, duration)
+func (maker JWTMaker) CreateToken(email string, duration time.Duration) (string, error) {
+	payload, err := NewPayload(email, duration)
 	if err != nil {
 		return "", fmt.Errorf("failed to create payload: %w", err)
 	}

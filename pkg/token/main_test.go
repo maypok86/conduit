@@ -8,10 +8,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func fakeToken(t *testing.T, maker token.JWTMaker, owner string, duration time.Duration) string {
+func fakeToken(t *testing.T, maker token.JWTMaker, email string, duration time.Duration) string {
 	t.Helper()
 
-	token, err := maker.CreateToken(owner, duration)
+	token, err := maker.CreateToken(email, duration)
 	require.NoError(t, err)
 	require.NotEmpty(t, token)
 

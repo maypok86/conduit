@@ -19,13 +19,8 @@ linters:
     - nosprintfhostport
     - gochecknoglobals
     - forbidigo
+    - tagliatelle
   fast: false
-
-linters-settings:
-  tagliatelle:
-    case:
-      rules:
-        json: snake
 
 issues:
   exclude-rules:

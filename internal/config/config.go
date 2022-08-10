@@ -27,6 +27,7 @@ type (
 		HTTP        HTTP
 		Postgres    Postgres
 		Logger      Logger
+		Token       Token
 	}
 
 	// HTTP is the configuration for the HTTP server.
@@ -51,6 +52,12 @@ type (
 	// Logger is the configuration for the logger.
 	Logger struct {
 		Level string `envconfig:"LOGGER_LEVEL" default:"info"`
+	}
+
+	// Token is the configuration for the token.
+	Token struct {
+		SecretKey string        `envconfig:"TOKEN_SECRET_KEY" required:"true" json:"-"`
+		Expired   time.Duration `envconfig:"TOKEN_EXPIRED"                             default:"15m"`
 	}
 )
 

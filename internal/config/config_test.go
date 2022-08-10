@@ -19,6 +19,7 @@ type env struct {
 	postgresDBName   string
 	postgresUser     string
 	postgresPassword string
+	tokenSecretKey   string
 }
 
 func setEnv(t *testing.T, env env) {
@@ -32,6 +33,7 @@ func setEnv(t *testing.T, env env) {
 	require.NoError(t, os.Setenv("POSTGRES_DBNAME", env.postgresDBName))
 	require.NoError(t, os.Setenv("POSTGRES_USER", env.postgresUser))
 	require.NoError(t, os.Setenv("POSTGRES_PASSWORD", env.postgresPassword))
+	require.NoError(t, os.Setenv("TOKEN_SECRET_KEY", env.tokenSecretKey))
 }
 
 func TestGet(t *testing.T) {
@@ -53,6 +55,7 @@ func TestGet(t *testing.T) {
 				postgresDBName:   "test_wb-l0",
 				postgresUser:     "test_wb-l0",
 				postgresPassword: "test",
+				tokenSecretKey:   "secret",
 			},
 			want: &config.Config{
 				Environment: "test",
@@ -73,6 +76,10 @@ func TestGet(t *testing.T) {
 				},
 				Logger: config.Logger{
 					Level: "info",
+				},
+				Token: config.Token{
+					SecretKey: "secret",
+					Expired:   15 * time.Minute,
 				},
 			},
 		},

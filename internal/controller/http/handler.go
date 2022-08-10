@@ -3,18 +3,31 @@ package http
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/maypok86/conduit/pkg/logger"
+	"github.com/maypok86/conduit/pkg/token"
 	"go.uber.org/zap"
 )
 
+type tokenMaker interface {
+	CreateToken(string, time.Duration) (string, error)
+	VerifyToken(token string) (*token.Payload, error)
+}
+
 // Handler is a http handler.
-type Handler struct{}
+type Handler struct {
+	tokenMaker   tokenMaker
+	tokenExpired time.Duration
+}
 
 // NewHandler creates a new Handler.
-func NewHandler() Handler {
-	return Handler{}
+func NewHandler(tokenMaker tokenMaker, tokenExpired time.Duration) Handler {
+	return Handler{
+		tokenMaker:   tokenMaker,
+		tokenExpired: tokenExpired,
+	}
 }
 
 // Init initializes the http routes.

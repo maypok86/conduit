@@ -13,6 +13,7 @@ import (
 	"github.com/maypok86/conduit/internal/controller/http"
 	"github.com/maypok86/conduit/pkg/httpserver"
 	"github.com/maypok86/conduit/pkg/postgres"
+	"github.com/maypok86/conduit/pkg/token"
 	"go.uber.org/zap"
 )
 
@@ -42,7 +43,12 @@ func New(ctx context.Context, logger *zap.Logger) (App, error) {
 		return App{}, fmt.Errorf("can not connect to postgres: %w", err)
 	}
 
-	handler := http.NewHandler()
+	tokenMaker, err := token.NewJWTMaker(cfg.Token.SecretKey)
+	if err != nil {
+		return App{}, fmt.Errorf("failed to create token maker: %w", err)
+	}
+
+	handler := http.NewHandler(tokenMaker, cfg.Token.Expired)
 
 	return App{
 		logger: logger,
