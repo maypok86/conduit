@@ -48,7 +48,7 @@ func New(ctx context.Context, logger *zap.Logger) (App, error) {
 		return App{}, fmt.Errorf("failed to create token maker: %w", err)
 	}
 
-	handler := httphandler.New(tokenMaker, cfg.Token.Expired, logger)
+	handler := httphandler.New(tokenMaker, logger)
 
 	return App{
 		logger: logger,

@@ -2,9 +2,8 @@
 package middleware
 
 import (
-	"time"
-
 	"github.com/gin-gonic/gin"
+	"github.com/maypok86/conduit/pkg/token"
 	"go.uber.org/zap"
 )
 
@@ -15,10 +14,10 @@ type Manager struct {
 }
 
 // NewManager creates a new http middleware manager.
-func NewManager(tokenMaker tokenMaker, tokenExpired time.Duration, logger *zap.Logger) Manager {
+func NewManager(tokenMaker tokenMaker, logger *zap.Logger) Manager {
 	return Manager{
 		log:  newLogMiddleware(logger),
-		auth: newAuthMiddleware(tokenMaker, tokenExpired),
+		auth: newAuthMiddleware(tokenMaker),
 	}
 }
 
@@ -27,4 +26,9 @@ func (m Manager) ApplyMiddlewares(router *gin.Engine) {
 	router.Use(gin.Recovery())
 	router.Use(m.log.Handle)
 	router.Use(m.auth.Handle)
+}
+
+// GetPayload returns the authorization payload from the context.
+func (m Manager) GetPayload(c *gin.Context) *token.Payload {
+	return m.auth.getPayload(c)
 }

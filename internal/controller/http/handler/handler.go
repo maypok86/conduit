@@ -23,9 +23,9 @@ type Handler struct {
 }
 
 // New creates a new Handler.
-func New(tokenMaker tokenMaker, tokenExpired time.Duration, logger *zap.Logger) Handler {
+func New(tokenMaker tokenMaker, logger *zap.Logger) Handler {
 	return Handler{
-		middlewareManager: middleware.NewManager(tokenMaker, tokenExpired, logger),
+		middlewareManager: middleware.NewManager(tokenMaker, logger),
 	}
 }
 
