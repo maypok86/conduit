@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/maypok86/conduit/internal/config"
+	"github.com/maypok86/conduit/internal/controller/http/middleware"
 	"github.com/maypok86/conduit/pkg/token"
 	"go.uber.org/zap"
 )
@@ -18,31 +19,25 @@ type tokenMaker interface {
 
 // Handler is a http handler.
 type Handler struct {
-	tokenMaker   tokenMaker
-	tokenExpired time.Duration
+	middlewareManager middleware.Manager
 }
 
 // New creates a new Handler.
-func New(tokenMaker tokenMaker, tokenExpired time.Duration) Handler {
+func New(tokenMaker tokenMaker, tokenExpired time.Duration, logger *zap.Logger) Handler {
 	return Handler{
-		tokenMaker:   tokenMaker,
-		tokenExpired: tokenExpired,
+		middlewareManager: middleware.NewManager(tokenMaker, tokenExpired, logger),
 	}
 }
 
 // Init initializes the http routes.
-func (h Handler) Init(_ *zap.Logger) http.Handler {
+func (h Handler) Init() http.Handler {
 	router := gin.New()
 
 	if config.Get().IsProd() {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
-	setMiddlewares(router, nil)
+	h.middlewareManager.ApplyMiddlewares(router)
 
 	return router
-}
-
-func setMiddlewares(router *gin.Engine, _ *zap.Logger) {
-	router.Use(gin.Recovery())
 }

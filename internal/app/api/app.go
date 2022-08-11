@@ -48,13 +48,13 @@ func New(ctx context.Context, logger *zap.Logger) (App, error) {
 		return App{}, fmt.Errorf("failed to create token maker: %w", err)
 	}
 
-	handler := httphandler.New(tokenMaker, cfg.Token.Expired)
+	handler := httphandler.New(tokenMaker, cfg.Token.Expired, logger)
 
 	return App{
 		logger: logger,
 		db:     postgresInstance,
 		httpServer: httpserver.New(
-			handler.Init(logger),
+			handler.Init(),
 			httpserver.WithHost(cfg.HTTP.Host),
 			httpserver.WithPort(cfg.HTTP.Port),
 			httpserver.WithMaxHeaderBytes(cfg.HTTP.MaxHeaderBytes),
