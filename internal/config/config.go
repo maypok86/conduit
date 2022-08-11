@@ -28,6 +28,7 @@ type (
 		Postgres    Postgres
 		Logger      Logger
 		Token       Token
+		CORS        CORS
 	}
 
 	// HTTP is the configuration for the HTTP server.
@@ -58,6 +59,11 @@ type (
 	Token struct {
 		SecretKey string        `envconfig:"TOKEN_SECRET_KEY" required:"true" json:"-"`
 		Expired   time.Duration `envconfig:"TOKEN_EXPIRED"                             default:"15m"`
+	}
+
+	// CORS is the configuration for the CORS.
+	CORS struct {
+		AllowOrigins []string `envconfig:"CORS_ALLOW_ORIGINS" required:"true"`
 	}
 )
 

@@ -24,6 +24,7 @@ func NewManager(tokenMaker tokenMaker, logger *zap.Logger) Manager {
 // ApplyMiddlewares applies middlewares to the given router.
 func (m Manager) ApplyMiddlewares(router *gin.Engine) {
 	router.Use(gin.Recovery())
+	router.Use(corsMiddleware())
 	router.Use(m.log.Handle)
 	router.Use(m.auth.Handle)
 }
