@@ -20,6 +20,7 @@ linters:
     - gochecknoglobals
     - forbidigo
     - tagliatelle
+    - varnamelen
   fast: false
 
 issues:

@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/maypok86/conduit/internal/config"
-	"github.com/maypok86/conduit/internal/controller/http"
+	httphandler "github.com/maypok86/conduit/internal/controller/http/handler"
 	"github.com/maypok86/conduit/pkg/httpserver"
 	"github.com/maypok86/conduit/pkg/postgres"
 	"github.com/maypok86/conduit/pkg/token"
@@ -48,7 +48,7 @@ func New(ctx context.Context, logger *zap.Logger) (App, error) {
 		return App{}, fmt.Errorf("failed to create token maker: %w", err)
 	}
 
-	handler := http.NewHandler(tokenMaker, cfg.Token.Expired)
+	handler := httphandler.New(tokenMaker, cfg.Token.Expired)
 
 	return App{
 		logger: logger,

@@ -1,5 +1,5 @@
-// Package errors provides custom error types for the openapi HTTP API.
-package errors
+// Package slugerr provides custom error types for the openapi HTTP API.
+package slugerr
 
 // ErrorType defines the type of error.
 type ErrorType struct {
