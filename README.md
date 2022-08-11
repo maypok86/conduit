@@ -16,8 +16,13 @@
 
 ## 📖 Contents
 
+- [Technologies](#technologies)
 - [Contribute](#contribute)
 - [License](#license)
+
+## ⚡️ Technologies <a id="technologies" />
+
+<img width="70%" src="./assets/diagrams/stack.png" alt="stack" />
 
 ## 👏 Contribute <a id="contribute" />
 
