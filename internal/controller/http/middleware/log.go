@@ -6,22 +6,14 @@ import (
 	"go.uber.org/zap"
 )
 
-type logMiddleware struct {
-	logger *zap.Logger
-}
-
-func newLogMiddleware(logger *zap.Logger) logMiddleware {
-	return logMiddleware{
-		logger: logger,
+func logMiddleware(l *zap.Logger) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		fields := []zap.Field{
+			zap.String("endpoint", c.Request.URL.Path),
+			zap.String("method", c.Request.Method),
+			zap.String("remote_addr", c.Request.RemoteAddr),
+		}
+		logger.RequestWithLogger(c, l.With(fields...))
+		c.Next()
 	}
-}
-
-func (lm logMiddleware) Handle(c *gin.Context) {
-	fields := []zap.Field{
-		zap.String("endpoint", c.Request.URL.Path),
-		zap.String("method", c.Request.Method),
-		zap.String("remote_addr", c.Request.RemoteAddr),
-	}
-	logger.RequestWithLogger(c, lm.logger.With(fields...))
-	c.Next()
 }

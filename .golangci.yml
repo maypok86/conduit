@@ -23,6 +23,10 @@ linters:
     - varnamelen
   fast: false
 
+linters-settings:
+  nlreturn:
+    block-size: 2
+
 issues:
   exclude-rules:
     - path: _test\.go

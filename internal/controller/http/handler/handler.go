@@ -1,8 +1,7 @@
-// Package http provides a http handler.
-package http
+// Package handler provides a http handler.
+package handler
 
 import (
-	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -17,27 +16,26 @@ type tokenMaker interface {
 	VerifyToken(token string) (*token.Payload, error)
 }
 
-// Handler is a http handler.
-type Handler struct {
-	middlewareManager middleware.Manager
+// Deps is a http handler dependencies.
+type Deps struct {
+	TokenMaker  tokenMaker
+	Logger      *zap.Logger
+	UserService UserService
 }
 
-// New creates a new Handler.
-func New(tokenMaker tokenMaker, logger *zap.Logger) Handler {
-	return Handler{
-		middlewareManager: middleware.NewManager(tokenMaker, logger),
-	}
-}
-
-// Init initializes the http routes.
-func (h Handler) Init() http.Handler {
+// NewRouter returns a new http router.
+func NewRouter(deps Deps) *gin.Engine {
 	router := gin.New()
 
 	if config.Get().IsProd() {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
-	h.middlewareManager.ApplyMiddlewares(router)
+	middleware.ApplyMiddlewares(router, deps.Logger)
+
+	authMiddleware := middleware.NewAuth(deps.TokenMaker)
+
+	newUserHandler(router, authMiddleware, deps.UserService)
 
 	return router
 }
