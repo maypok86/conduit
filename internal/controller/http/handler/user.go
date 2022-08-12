@@ -15,11 +15,13 @@ import (
 // UserService is a user service interface.
 type UserService interface {
 	CreateUser(ctx context.Context, dto user.CreateDTO) (user.User, error)
+	GetByEmail(ctx context.Context, email string) (user.User, error)
 }
 
 type userHandler struct {
-	userService UserService
-	tokenMaker  TokenMaker
+	authMiddleware middleware.Auth
+	userService    UserService
+	tokenMaker     TokenMaker
 }
 
 type userDeps struct {
@@ -31,8 +33,9 @@ type userDeps struct {
 
 func newUserHandler(deps userDeps) {
 	handler := userHandler{
-		userService: deps.userService,
-		tokenMaker:  deps.tokenMaker,
+		userService:    deps.userService,
+		tokenMaker:     deps.tokenMaker,
+		authMiddleware: deps.authMiddleware,
 	}
 
 	usersGroup := deps.router.Group("/users")
@@ -103,7 +106,35 @@ func (h userHandler) createUser(c *gin.Context) {
 func (h userHandler) loginUser(c *gin.Context) {
 }
 
+type getCurrentUserResponse struct {
+	Email    string `json:"email"`
+	Username string `json:"username"`
+	Bio      string `json:"bio"`
+	Image    string `json:"image"`
+	Token    string `json:"token"`
+}
+
 func (h userHandler) getCurrentUser(c *gin.Context) {
+	payload := h.authMiddleware.GetPayload(c)
+	if payload == nil {
+		return
+	}
+
+	userEntity, err := h.userService.GetByEmail(logger.FromRequestToContext(c), payload.Email)
+	if err != nil {
+		httperr.RespondWithSlugError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"user": getCurrentUserResponse{
+			Email:    userEntity.Email,
+			Username: userEntity.Username,
+			Bio:      userEntity.GetBio(),
+			Image:    userEntity.GetImage(),
+			Token:    h.authMiddleware.GetToken(c),
+		},
+	})
 }
 
 func (h userHandler) updateCurrentUser(c *gin.Context) {

@@ -27,6 +27,7 @@ type Auth struct {
 	authorizationHeaderKey  string
 	authorizationType       string
 	authorizationPayloadKey string
+	authorizationTokenKey   string
 	tokenMaker              tokenMaker
 }
 
@@ -37,6 +38,7 @@ func NewAuth(tokenMaker tokenMaker) Auth {
 		authorizationHeaderKey:  "Authorization",
 		authorizationType:       "token",
 		authorizationPayloadKey: "authorization_payload",
+		authorizationTokenKey:   "authorization_token",
 	}
 }
 
@@ -54,11 +56,13 @@ func (a Auth) wrapError(err error, slug string) *authError {
 
 // Handle is a middleware that parses the authorization header and sets the payload to the context.
 func (a Auth) Handle(c *gin.Context) {
-	payload, authErr := a.parseAuthHeader(c)
+	payload, accessToken, authErr := a.parseAuthHeader(c)
 	if authErr != nil {
 		httperr.Unauthorised(c, authErr.slug, authErr.err)
+		return
 	}
 
+	c.Set(a.authorizationTokenKey, accessToken)
 	c.Set(a.authorizationPayloadKey, payload)
 	c.Next()
 }
@@ -78,22 +82,35 @@ func (a Auth) GetPayload(c *gin.Context) *token.Payload {
 	return nil
 }
 
-func (a Auth) parseAuthHeader(c *gin.Context) (*token.Payload, *authError) {
+// GetToken returns the token from the request.
+func (a Auth) GetToken(c *gin.Context) string {
+	v, exists := c.Get(a.authorizationTokenKey)
+	if exists {
+		accessToken, ok := v.(string)
+		if ok {
+			return accessToken
+		}
+	}
+
+	return ""
+}
+
+func (a Auth) parseAuthHeader(c *gin.Context) (*token.Payload, string, *authError) {
 	const numberOfFields = 2 // Authorization: Token <token>
 
 	authorizationHeader := c.GetHeader(a.authorizationHeaderKey)
 	if authorizationHeader == "" {
-		return nil, a.wrapError(errAuthHeaderNotProvided, "empty-token")
+		return nil, "", a.wrapError(errAuthHeaderNotProvided, "empty-token")
 	}
 
 	fields := strings.Fields(authorizationHeader)
 	if len(fields) < numberOfFields {
-		return nil, a.wrapError(errInvalidAuthHeaderFormat, "invalid-token")
+		return nil, "", a.wrapError(errInvalidAuthHeaderFormat, "invalid-token")
 	}
 
 	authorizationType := strings.ToLower(fields[0])
 	if authorizationType != a.authorizationType {
-		return nil, a.wrapError(
+		return nil, "", a.wrapError(
 			fmt.Errorf("unsupported authorization type %s", authorizationType), //nolint: goerr113
 			"unsupported-token",
 		)
@@ -103,8 +120,8 @@ func (a Auth) parseAuthHeader(c *gin.Context) (*token.Payload, *authError) {
 
 	payload, err := a.tokenMaker.VerifyToken(accessToken)
 	if err != nil {
-		return nil, a.wrapError(err, "unable-to-verify-jwt")
+		return nil, "", a.wrapError(err, "unable-to-verify-jwt")
 	}
 
-	return payload, nil
+	return payload, accessToken, nil
 }

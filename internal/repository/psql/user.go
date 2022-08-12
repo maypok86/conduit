@@ -8,6 +8,7 @@ import (
 
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgerrcode"
+	"github.com/jackc/pgx/v4"
 	"github.com/maypok86/conduit/internal/domain/user"
 	"github.com/maypok86/conduit/pkg/postgres"
 )
@@ -53,4 +54,39 @@ func (ur UserRepository) CreateUser(ctx context.Context, dto user.User) (user.Us
 	}
 
 	return dto, nil
+}
+
+// GetByEmail returns user by email.
+func (ur UserRepository) GetByEmail(ctx context.Context, email string) (user.User, error) {
+	sql, args, err := ur.db.Builder.Select(
+		"id",
+		"username",
+		"password",
+		"bio",
+		"image",
+		"created_at",
+		"updated_at",
+	).From("users").Where("email = ?", email).ToSql()
+	if err != nil {
+		return user.User{}, fmt.Errorf("can not build select user query: %w", err)
+	}
+
+	u := user.User{Email: email}
+	if err := ur.db.Pool.QueryRow(ctx, sql, args...).Scan(
+		&u.ID,
+		&u.Username,
+		&u.Password,
+		&u.Bio,
+		&u.Image,
+		&u.CreatedAt,
+		&u.UpdatedAt,
+	); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return user.User{}, fmt.Errorf("can not find user: %w", user.ErrNotFound)
+		}
+
+		return user.User{}, fmt.Errorf("can not find user: %w", err)
+	}
+
+	return u, nil
 }

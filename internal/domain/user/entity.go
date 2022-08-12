@@ -8,8 +8,12 @@ import (
 	"github.com/google/uuid"
 )
 
-// ErrAlreadyExist is an error that indicates that user already exists.
-var ErrAlreadyExist = errors.New("user with given email or nickname already exist")
+var (
+	// ErrAlreadyExist is an error that indicates that user already exists.
+	ErrAlreadyExist = errors.New("user with given email or nickname already exist")
+	// ErrNotFound is an error that indicates that user not found.
+	ErrNotFound = errors.New("user not found")
+)
 
 // User is a user entity.
 type User struct {

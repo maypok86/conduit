@@ -9,6 +9,7 @@ import (
 // Repository is a user repository.
 type Repository interface {
 	CreateUser(ctx context.Context, dto User) (User, error)
+	GetByEmail(ctx context.Context, email string) (User, error)
 }
 
 // PasswordHasher is a password hasher.
@@ -50,6 +51,16 @@ func (s Service) CreateUser(ctx context.Context, dto CreateDTO) (User, error) {
 	user, err = s.userRepository.CreateUser(ctx, user)
 	if err != nil {
 		return User{}, fmt.Errorf("can not create user: %w", err)
+	}
+
+	return user, nil
+}
+
+// GetByEmail returns user by email.
+func (s Service) GetByEmail(ctx context.Context, email string) (User, error) {
+	user, err := s.userRepository.GetByEmail(ctx, email)
+	if err != nil {
+		return User{}, fmt.Errorf("can not get user by email: %w", err)
 	}
 
 	return user, nil
