@@ -11,14 +11,14 @@ import (
 	"go.uber.org/zap"
 )
 
-type tokenMaker interface {
+type TokenMaker interface {
 	CreateToken(string, time.Duration) (string, error)
 	VerifyToken(token string) (*token.Payload, error)
 }
 
 // Deps is a http handler dependencies.
 type Deps struct {
-	TokenMaker  tokenMaker
+	TokenMaker  TokenMaker
 	Logger      *zap.Logger
 	UserService UserService
 }
@@ -33,9 +33,12 @@ func NewRouter(deps Deps) *gin.Engine {
 
 	middleware.ApplyMiddlewares(router, deps.Logger)
 
-	authMiddleware := middleware.NewAuth(deps.TokenMaker)
+	api := router.Group("/api")
+	{
+		authMiddleware := middleware.NewAuth(deps.TokenMaker)
 
-	newUserHandler(router, authMiddleware, deps.UserService)
+		newUserHandler(api, authMiddleware, deps.UserService, deps.TokenMaker)
+	}
 
 	return router
 }

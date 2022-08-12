@@ -16,6 +16,10 @@ func InternalError(c *gin.Context, slug string, err error) {
 	httpRespondWithError(c, err, slug, "Internal server error", http.StatusInternalServerError)
 }
 
+func UnprocessableEntity(c *gin.Context, slug string, err error) {
+	httpRespondWithError(c, err, slug, "Unprocessable entity", http.StatusUnprocessableEntity)
+}
+
 // Unauthorised is a helper function to respond with unauthorized error.
 func Unauthorised(c *gin.Context, slug string, err error) {
 	httpRespondWithError(c, err, slug, "Unauthorised", http.StatusUnauthorized)
@@ -30,7 +34,7 @@ func BadRequest(c *gin.Context, slug string, err error) {
 func RespondWithSlugError(c *gin.Context, err error) {
 	var slugError slugerr.SlugError
 	if !errors.As(err, &slugError) {
-		InternalError(c, "internal-server-error", err)
+		UnprocessableEntity(c, "unprocessable-entity", err)
 
 		return
 	}

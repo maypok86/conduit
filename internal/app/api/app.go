@@ -11,8 +11,9 @@ import (
 
 	"github.com/maypok86/conduit/internal/config"
 	httphandler "github.com/maypok86/conduit/internal/controller/http/handler"
-	"github.com/maypok86/conduit/internal/repository"
-	"github.com/maypok86/conduit/internal/service"
+	"github.com/maypok86/conduit/internal/domain/user"
+	"github.com/maypok86/conduit/internal/repository/psql"
+	"github.com/maypok86/conduit/pkg/hash"
 	"github.com/maypok86/conduit/pkg/httpserver"
 	"github.com/maypok86/conduit/pkg/postgres"
 	"github.com/maypok86/conduit/pkg/token"
@@ -45,13 +46,15 @@ func New(ctx context.Context, logger *zap.Logger) (App, error) {
 		return App{}, fmt.Errorf("can not connect to postgres: %w", err)
 	}
 
-	userRepository := repository.NewUserPostgres(postgresInstance)
-	userService := service.NewUserService(userRepository)
+	passwordHasher := hash.NewArgon2Hasher()
 
 	tokenMaker, err := token.NewJWTMaker(cfg.Token.SecretKey)
 	if err != nil {
 		return App{}, fmt.Errorf("failed to create token maker: %w", err)
 	}
+
+	userRepository := psql.NewUserRepository(postgresInstance)
+	userService := user.NewService(userRepository, passwordHasher)
 
 	router := httphandler.NewRouter(httphandler.Deps{
 		TokenMaker:  tokenMaker,

@@ -1,6 +1,8 @@
 package logger
 
 import (
+	"context"
+
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )
@@ -24,4 +26,11 @@ func FromRequest(c *gin.Context) *zap.Logger {
 	}
 
 	return zap.L()
+}
+
+// FromRequestToContext sets logger from request to context.
+func FromRequestToContext(c *gin.Context) context.Context {
+	l := FromRequest(c)
+
+	return ContextWithLogger(c.Request.Context(), l)
 }
