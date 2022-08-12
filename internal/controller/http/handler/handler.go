@@ -11,6 +11,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// TokenMaker is a token maker.
 type TokenMaker interface {
 	CreateToken(string, time.Duration) (string, error)
 	VerifyToken(token string) (*token.Payload, error)
@@ -37,7 +38,12 @@ func NewRouter(deps Deps) *gin.Engine {
 	{
 		authMiddleware := middleware.NewAuth(deps.TokenMaker)
 
-		newUserHandler(api, authMiddleware, deps.UserService, deps.TokenMaker)
+		newUserHandler(userDeps{
+			router:         api,
+			authMiddleware: authMiddleware,
+			userService:    deps.UserService,
+			tokenMaker:     deps.TokenMaker,
+		})
 	}
 
 	return router

@@ -16,6 +16,7 @@ func InternalError(c *gin.Context, slug string, err error) {
 	httpRespondWithError(c, err, slug, "Internal server error", http.StatusInternalServerError)
 }
 
+// UnprocessableEntity is a helper function to respond with unprocessable entity error.
 func UnprocessableEntity(c *gin.Context, slug string, err error) {
 	httpRespondWithError(c, err, slug, "Unprocessable entity", http.StatusUnprocessableEntity)
 }

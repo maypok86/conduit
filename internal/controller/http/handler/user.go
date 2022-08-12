@@ -22,19 +22,26 @@ type userHandler struct {
 	tokenMaker  TokenMaker
 }
 
-func newUserHandler(router *gin.RouterGroup, authMiddleware middleware.Auth, userService UserService, tokenMaker TokenMaker) {
+type userDeps struct {
+	router         *gin.RouterGroup
+	authMiddleware middleware.Auth
+	userService    UserService
+	tokenMaker     TokenMaker
+}
+
+func newUserHandler(deps userDeps) {
 	handler := userHandler{
-		userService: userService,
-		tokenMaker:  tokenMaker,
+		userService: deps.userService,
+		tokenMaker:  deps.tokenMaker,
 	}
 
-	usersGroup := router.Group("/users")
+	usersGroup := deps.router.Group("/users")
 	{
 		usersGroup.POST("/", handler.createUser)
 		usersGroup.POST("/login", handler.loginUser)
 	}
 
-	userGroup := router.Group("/user", authMiddleware.Handle)
+	userGroup := deps.router.Group("/user", deps.authMiddleware.Handle)
 	{
 		userGroup.GET("/", handler.getCurrentUser)
 		userGroup.PUT("/", handler.updateCurrentUser)

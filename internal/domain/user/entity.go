@@ -23,6 +23,7 @@ type User struct {
 	UpdatedAt time.Time
 }
 
+// GetBio returns bio.
 func (u User) GetBio() string {
 	if u.Bio == nil {
 		return ""
@@ -31,6 +32,7 @@ func (u User) GetBio() string {
 	return *u.Bio
 }
 
+// GetImage returns image.
 func (u User) GetImage() string {
 	if u.Image == nil {
 		return ""
