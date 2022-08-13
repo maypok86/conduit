@@ -34,15 +34,15 @@ func New(console io.Writer, opts ...Option) *zap.Logger {
 
 	consoleEncoder := zapcore.NewConsoleEncoder(prodCfg)
 
-	logLevel := &level{lvl: defaultLogLevel}
+	logLevel := NewLevel(defaultLogLevel)
 	for _, opt := range opts {
-		opt(logLevel)
+		opt(&logLevel)
 	}
 
 	core := zapcore.NewCore(
 		consoleEncoder,
 		zapcore.AddSync(console),
-		logLevel.zapLevel(),
+		logLevel.ZapLevel(),
 	)
 
 	return zap.New(

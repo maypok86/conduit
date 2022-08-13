@@ -5,11 +5,18 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-type level struct {
+// Level is a logger level.
+type Level struct {
 	lvl string
 }
 
-func (l *level) zapLevel() zapcore.Level {
+// NewLevel creates a new logger level.
+func NewLevel(lvl string) Level {
+	return Level{lvl: lvl}
+}
+
+// ZapLevel returns the zap level.
+func (l Level) ZapLevel() zapcore.Level {
 	switch l.lvl {
 	case "debug":
 		return zap.DebugLevel
@@ -31,11 +38,11 @@ func (l *level) zapLevel() zapcore.Level {
 }
 
 // Option is a function that can be passed to New to customize the logger.
-type Option func(*level)
+type Option func(*Level)
 
 // WithLevel option sets the log level.
 func WithLevel(lvl string) Option {
-	return func(l *level) {
+	return func(l *Level) {
 		l.lvl = lvl
 	}
 }
