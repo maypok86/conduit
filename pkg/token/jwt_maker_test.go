@@ -10,6 +10,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestNewJWTMakerErr(t *testing.T) {
+	t.Parallel()
+
+	_, err := token.NewJWTMaker("test")
+	require.ErrorIs(t, err, token.ErrInvalidKeySize)
+}
+
 func TestJWTMaker(t *testing.T) {
 	t.Parallel()
 
