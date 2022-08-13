@@ -52,6 +52,12 @@ ci: lint test.unit ## Run all the tests and code checks
 .PHONY: generate
 generate: ## Generate files for the project
 	go generate ./...
+	mockgen --destination=internal/repository/psql/mocks/rows.go --package=mock_psql \
+		--build_flags=--mod=mod github.com/jackc/pgx/v4 Rows
+	mockgen --destination=internal/repository/psql/mocks/row.go --package=mock_psql \
+		--build_flags=--mod=mod github.com/jackc/pgx/v4 Row
+	mockgen --source=pkg/postgres/pgxpool.go --package=mock_psql \
+		--destination=internal/repository/psql/mocks/pgxpool.go
 
 .PHONY: clean
 clean: ## Remove temporary files

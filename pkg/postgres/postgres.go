@@ -27,7 +27,7 @@ type Postgres struct {
 	connAttempts int
 	connTimeout  time.Duration
 	Builder      sq.StatementBuilderType
-	Pool         *pgxpool.Pool
+	Pool         PgxPool
 }
 
 // New creates a new postgres connection.
