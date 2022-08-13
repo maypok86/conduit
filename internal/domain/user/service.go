@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-//go:generate mockgen -source=service.go -destination=mocks/service_test.go -package=user_test
+//go:generate mockgen -source=service.go -destination=mock_test.go -package=user_test
 
 // Repository is a user repository.
 type Repository interface {
