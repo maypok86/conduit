@@ -25,8 +25,8 @@ func NewUserRepository(db *postgres.Postgres) UserRepository {
 	}
 }
 
-// CreateUser creates a new user.
-func (ur UserRepository) CreateUser(ctx context.Context, dto user.User) (user.User, error) {
+// Create creates a new user.
+func (ur UserRepository) Create(ctx context.Context, dto user.User) (user.User, error) {
 	sql, args, err := ur.db.Builder.Insert("users").Columns(
 		"email",
 		"username",

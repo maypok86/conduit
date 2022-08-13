@@ -8,7 +8,7 @@ import (
 
 // Repository is a user repository.
 type Repository interface {
-	CreateUser(ctx context.Context, dto User) (User, error)
+	Create(ctx context.Context, dto User) (User, error)
 	GetByEmail(ctx context.Context, email string) (User, error)
 }
 
@@ -32,8 +32,8 @@ func NewService(userRepository Repository, passwordHasher PasswordHasher) Servic
 	}
 }
 
-// CreateUser creates a new user.
-func (s Service) CreateUser(ctx context.Context, dto CreateDTO) (User, error) {
+// Create creates a new user.
+func (s Service) Create(ctx context.Context, dto CreateDTO) (User, error) {
 	passwordHash, err := s.passwordHasher.Hash(dto.Password)
 	if err != nil {
 		return User{}, fmt.Errorf("can not hash password: %w", err)
@@ -48,7 +48,7 @@ func (s Service) CreateUser(ctx context.Context, dto CreateDTO) (User, error) {
 		UpdatedAt: now,
 	}
 
-	user, err = s.userRepository.CreateUser(ctx, user)
+	user, err = s.userRepository.Create(ctx, user)
 	if err != nil {
 		return User{}, fmt.Errorf("can not create user: %w", err)
 	}

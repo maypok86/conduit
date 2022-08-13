@@ -14,7 +14,7 @@ import (
 
 // UserService is a user service interface.
 type UserService interface {
-	CreateUser(ctx context.Context, dto user.CreateDTO) (user.User, error)
+	Create(ctx context.Context, dto user.CreateDTO) (user.User, error)
 	Login(ctx context.Context, email, password string) (user.User, error)
 	GetByEmail(ctx context.Context, email string) (user.User, error)
 }
@@ -77,7 +77,7 @@ func (h userHandler) createUser(c *gin.Context) {
 		return
 	}
 
-	userEntity, err := h.userService.CreateUser(logger.FromRequestToContext(c), user.CreateDTO{
+	userEntity, err := h.userService.Create(logger.FromRequestToContext(c), user.CreateDTO{
 		Email:    request.User.Email,
 		Username: request.User.Username,
 		Password: request.User.Password,
