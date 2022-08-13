@@ -41,16 +41,14 @@ func (ur UserRepository) Create(ctx context.Context, dto user.User) (user.User, 
 	}
 
 	if err := ur.db.Pool.QueryRow(ctx, sql, args...).Scan(&dto.ID); err != nil {
-		const errorFmtString = "can not insert user: %w"
-
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
 			if pgErr.Code == pgerrcode.UniqueViolation {
-				return user.User{}, fmt.Errorf(errorFmtString, user.ErrAlreadyExist)
+				return user.User{}, fmt.Errorf("can not insert user: %w", user.ErrAlreadyExist)
 			}
 		}
 
-		return user.User{}, fmt.Errorf(errorFmtString, err)
+		return user.User{}, fmt.Errorf("can not insert user: %w", err)
 	}
 
 	return dto, nil
@@ -80,6 +78,68 @@ func (ur UserRepository) GetByEmail(ctx context.Context, email string) (user.Use
 		&u.Image,
 		&u.CreatedAt,
 		&u.UpdatedAt,
+	); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return user.User{}, fmt.Errorf("can not find user: %w", user.ErrNotFound)
+		}
+
+		return user.User{}, fmt.Errorf("can not find user: %w", err)
+	}
+
+	return u, nil
+}
+
+type updateDTO map[string]any
+
+func (ur UserRepository) toUpdateDTO(dto user.UpdateDTO) updateDTO {
+	result := map[string]any{
+		"updated_at": dto.UpdatedAt,
+	}
+
+	if dto.Username != nil {
+		result["username"] = *dto.Username
+	}
+
+	if dto.Email != nil {
+		result["email"] = *dto.Email
+	}
+
+	if dto.Bio != nil {
+		result["bio"] = *dto.Bio
+	}
+
+	if dto.Image != nil {
+		result["image"] = *dto.Image
+	}
+
+	return result
+}
+
+// UpdateByEmail updates user by email.
+func (ur UserRepository) UpdateByEmail(ctx context.Context, email string, updateDTO user.UpdateDTO) (user.User, error) {
+	dto := ur.toUpdateDTO(updateDTO)
+
+	updateBuilder := ur.db.Builder.Update("users")
+	for column, value := range dto {
+		updateBuilder = updateBuilder.Set(column, value)
+	}
+
+	sql, args, err := updateBuilder.Suffix(
+		"RETURNING id, username, email, password, bio, image, created_at",
+	).Where("email = ?", email).ToSql()
+	if err != nil {
+		return user.User{}, fmt.Errorf("can not build update user query: %w", err)
+	}
+
+	u := user.User{UpdatedAt: updateDTO.UpdatedAt}
+	if err := ur.db.Pool.QueryRow(ctx, sql, args...).Scan(
+		&u.ID,
+		&u.Username,
+		&u.Email,
+		&u.Password,
+		&u.Bio,
+		&u.Image,
+		&u.CreatedAt,
 	); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return user.User{}, fmt.Errorf("can not find user: %w", user.ErrNotFound)

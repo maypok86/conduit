@@ -10,6 +10,7 @@ import (
 type Repository interface {
 	Create(ctx context.Context, dto User) (User, error)
 	GetByEmail(ctx context.Context, email string) (User, error)
+	UpdateByEmail(ctx context.Context, email string, updateDTO UpdateDTO) (User, error)
 }
 
 // PasswordHasher is a password hasher.
@@ -75,6 +76,18 @@ func (s Service) Login(ctx context.Context, email, password string) (User, error
 
 	if err := s.passwordHasher.Check(password, user.Password); err != nil {
 		return User{}, fmt.Errorf("can not check password: %w", err)
+	}
+
+	return user, nil
+}
+
+// UpdateByEmail updates user by email.
+func (s Service) UpdateByEmail(ctx context.Context, email string, dto UpdateDTO) (User, error) {
+	dto.UpdatedAt = time.Now()
+
+	user, err := s.userRepository.UpdateByEmail(ctx, email, dto)
+	if err != nil {
+		return User{}, fmt.Errorf("can not update user: %w", err)
 	}
 
 	return user, nil
