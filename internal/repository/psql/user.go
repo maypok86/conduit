@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v4"
@@ -89,40 +90,29 @@ func (ur UserRepository) GetByEmail(ctx context.Context, email string) (user.Use
 	return u, nil
 }
 
-type updateDTO map[string]any
-
-func (ur UserRepository) toUpdateDTO(dto user.UpdateDTO) updateDTO {
-	result := map[string]any{
-		"updated_at": dto.UpdatedAt,
-	}
-
+func (ur UserRepository) buildUpdateUserQuery(updateBuilder sq.UpdateBuilder, dto user.UpdateDTO) sq.UpdateBuilder {
 	if dto.Username != nil {
-		result["username"] = *dto.Username
+		updateBuilder = updateBuilder.Set("username", *dto.Username)
 	}
 
 	if dto.Email != nil {
-		result["email"] = *dto.Email
+		updateBuilder = updateBuilder.Set("email", *dto.Email)
 	}
 
 	if dto.Bio != nil {
-		result["bio"] = *dto.Bio
+		updateBuilder = updateBuilder.Set("bio", *dto.Bio)
 	}
 
 	if dto.Image != nil {
-		result["image"] = *dto.Image
+		updateBuilder = updateBuilder.Set("image", *dto.Image)
 	}
 
-	return result
+	return updateBuilder.Set("updated_at", dto.UpdatedAt)
 }
 
 // UpdateByEmail updates user by email.
-func (ur UserRepository) UpdateByEmail(ctx context.Context, email string, updateDTO user.UpdateDTO) (user.User, error) {
-	dto := ur.toUpdateDTO(updateDTO)
-
-	updateBuilder := ur.db.Builder.Update("users")
-	for column, value := range dto {
-		updateBuilder = updateBuilder.Set(column, value)
-	}
+func (ur UserRepository) UpdateByEmail(ctx context.Context, email string, dto user.UpdateDTO) (user.User, error) {
+	updateBuilder := ur.buildUpdateUserQuery(ur.db.Builder.Update("users"), dto)
 
 	sql, args, err := updateBuilder.Suffix(
 		"RETURNING id, username, email, password, bio, image, created_at",
@@ -131,7 +121,7 @@ func (ur UserRepository) UpdateByEmail(ctx context.Context, email string, update
 		return user.User{}, fmt.Errorf("can not build update user query: %w", err)
 	}
 
-	u := user.User{UpdatedAt: updateDTO.UpdatedAt}
+	u := user.User{UpdatedAt: dto.UpdatedAt}
 	if err := ur.db.Pool.QueryRow(ctx, sql, args...).Scan(
 		&u.ID,
 		&u.Username,
