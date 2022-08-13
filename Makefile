@@ -49,6 +49,10 @@ cover: test.unit ## Run all the tests and opens the coverage report
 .PHONY: ci
 ci: lint test.unit ## Run all the tests and code checks
 
+.PHONY: generate
+generate: ## Generate files for the project
+	go generate ./...
+
 .PHONY: clean
 clean: ## Remove temporary files
 	@go clean

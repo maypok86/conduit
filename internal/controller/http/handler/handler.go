@@ -11,10 +11,12 @@ import (
 	"go.uber.org/zap"
 )
 
+//go:generate mockgen -source=handler.go -destination=mocks/handler_test.go -package=handler_test
+
 // TokenMaker is a token maker.
 type TokenMaker interface {
-	CreateToken(string, time.Duration) (string, error)
-	VerifyToken(token string) (*token.Payload, error)
+	CreateToken(email string, duration time.Duration) (string, error)
+	VerifyToken(accessToken string) (*token.Payload, error)
 }
 
 // Deps is a http handler dependencies.

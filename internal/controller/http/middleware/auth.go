@@ -17,9 +17,12 @@ var (
 	errPayloadNotFound         = errors.New("payload not found")
 )
 
-type tokenMaker interface {
-	CreateToken(string, time.Duration) (string, error)
-	VerifyToken(token string) (*token.Payload, error)
+//go:generate mockgen -source=auth.go -destination=mocks/auth_test.go -package=middleware_test
+
+// TokenMaker is a token maker.
+type TokenMaker interface {
+	CreateToken(email string, duration time.Duration) (string, error)
+	VerifyToken(accessToken string) (*token.Payload, error)
 }
 
 // Auth is a middleware that parses the authorization header and sets the payload to the context.
@@ -28,11 +31,11 @@ type Auth struct {
 	authorizationType       string
 	authorizationPayloadKey string
 	authorizationTokenKey   string
-	tokenMaker              tokenMaker
+	tokenMaker              TokenMaker
 }
 
 // NewAuth returns a new Auth middleware.
-func NewAuth(tokenMaker tokenMaker) Auth {
+func NewAuth(tokenMaker TokenMaker) Auth {
 	return Auth{
 		tokenMaker:              tokenMaker,
 		authorizationHeaderKey:  "Authorization",

@@ -6,6 +6,8 @@ import (
 	"time"
 )
 
+//go:generate mockgen -source=service.go -destination=mocks/service_test.go -package=user_test
+
 // Repository is a user repository.
 type Repository interface {
 	Create(ctx context.Context, dto User) (User, error)

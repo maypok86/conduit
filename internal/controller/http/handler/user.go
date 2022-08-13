@@ -14,6 +14,8 @@ import (
 	"go.uber.org/zap"
 )
 
+//go:generate mockgen -source=user.go -destination=mocks/user_test.go -package=handler_test
+
 // ErrAtLeastOneFieldRequired is returned when at least one field is required to update user.
 var ErrAtLeastOneFieldRequired = errors.New("at least one field in update current user request must be provided")
 
