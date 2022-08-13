@@ -8,8 +8,9 @@ import (
 
 // Repository is a user repository.
 type Repository interface {
-	CreateUser(ctx context.Context, dto User) (User, error)
+	Create(ctx context.Context, dto User) (User, error)
 	GetByEmail(ctx context.Context, email string) (User, error)
+	UpdateByEmail(ctx context.Context, email string, updateDTO UpdateDTO) (User, error)
 }
 
 // PasswordHasher is a password hasher.
@@ -32,8 +33,8 @@ func NewService(userRepository Repository, passwordHasher PasswordHasher) Servic
 	}
 }
 
-// CreateUser creates a new user.
-func (s Service) CreateUser(ctx context.Context, dto CreateDTO) (User, error) {
+// Create creates a new user.
+func (s Service) Create(ctx context.Context, dto CreateDTO) (User, error) {
 	passwordHash, err := s.passwordHasher.Hash(dto.Password)
 	if err != nil {
 		return User{}, fmt.Errorf("can not hash password: %w", err)
@@ -48,7 +49,7 @@ func (s Service) CreateUser(ctx context.Context, dto CreateDTO) (User, error) {
 		UpdatedAt: now,
 	}
 
-	user, err = s.userRepository.CreateUser(ctx, user)
+	user, err = s.userRepository.Create(ctx, user)
 	if err != nil {
 		return User{}, fmt.Errorf("can not create user: %w", err)
 	}
@@ -61,6 +62,32 @@ func (s Service) GetByEmail(ctx context.Context, email string) (User, error) {
 	user, err := s.userRepository.GetByEmail(ctx, email)
 	if err != nil {
 		return User{}, fmt.Errorf("can not get user by email: %w", err)
+	}
+
+	return user, nil
+}
+
+// Login provides user login.
+func (s Service) Login(ctx context.Context, email, password string) (User, error) {
+	user, err := s.GetByEmail(ctx, email)
+	if err != nil {
+		return User{}, err
+	}
+
+	if err := s.passwordHasher.Check(password, user.Password); err != nil {
+		return User{}, fmt.Errorf("can not check password: %w", err)
+	}
+
+	return user, nil
+}
+
+// UpdateByEmail updates user by email.
+func (s Service) UpdateByEmail(ctx context.Context, email string, dto UpdateDTO) (User, error) {
+	dto.UpdatedAt = time.Now()
+
+	user, err := s.userRepository.UpdateByEmail(ctx, email, dto)
+	if err != nil {
+		return User{}, fmt.Errorf("can not update user: %w", err)
 	}
 
 	return user, nil
