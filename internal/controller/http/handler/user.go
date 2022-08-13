@@ -15,6 +15,7 @@ import (
 // UserService is a user service interface.
 type UserService interface {
 	CreateUser(ctx context.Context, dto user.CreateDTO) (user.User, error)
+	Login(ctx context.Context, email, password string) (user.User, error)
 	GetByEmail(ctx context.Context, email string) (user.User, error)
 }
 
@@ -103,7 +104,49 @@ func (h userHandler) createUser(c *gin.Context) {
 	})
 }
 
+type loginUserRequest struct {
+	User struct {
+		Email    string `json:"email"    binding:"required,email"`
+		Password string `json:"password" binding:"required,min=6"`
+	} `json:"user"`
+}
+
+type loginUserResponse struct {
+	Email    string `json:"email"`
+	Username string `json:"username"`
+	Bio      string `json:"bio"`
+	Image    string `json:"image"`
+	Token    string `json:"token"`
+}
+
 func (h userHandler) loginUser(c *gin.Context) {
+	var request loginUserRequest
+	if err := c.ShouldBindJSON(&request); err != nil {
+		httperr.BadRequest(c, "invalid-request", err)
+		return
+	}
+
+	userEntity, err := h.userService.Login(logger.FromRequestToContext(c), request.User.Email, request.User.Password)
+	if err != nil {
+		httperr.RespondWithSlugError(c, err)
+		return
+	}
+
+	accessToken, err := h.tokenMaker.CreateToken(userEntity.Email, config.Get().Token.Expired)
+	if err != nil {
+		httperr.RespondWithSlugError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"user": loginUserResponse{
+			Email:    userEntity.Email,
+			Username: userEntity.Username,
+			Bio:      userEntity.GetBio(),
+			Image:    userEntity.GetImage(),
+			Token:    accessToken,
+		},
+	})
 }
 
 type getCurrentUserResponse struct {

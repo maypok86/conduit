@@ -65,3 +65,17 @@ func (s Service) GetByEmail(ctx context.Context, email string) (User, error) {
 
 	return user, nil
 }
+
+// Login provides user login.
+func (s Service) Login(ctx context.Context, email, password string) (User, error) {
+	user, err := s.GetByEmail(ctx, email)
+	if err != nil {
+		return User{}, err
+	}
+
+	if err := s.passwordHasher.Check(password, user.Password); err != nil {
+		return User{}, fmt.Errorf("can not check password: %w", err)
+	}
+
+	return user, nil
+}
