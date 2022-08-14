@@ -128,7 +128,7 @@ func TestUserRepository_GetByEmail(t *testing.T) {
 	t.Parallel()
 
 	ctx := logger.ContextWithLogger(context.Background(), zap.L())
-	expectedSQL := "SELECT id, username, password, bio, image, created_at, updated_at FROM users WHERE email = $1"
+	expectedSQL := "SELECT id, username, password, bio, image, created_at, updated_at FROM users WHERE email = $1 LIMIT 1"
 	email := faker.Email()
 	userEntity := user.User{
 		Email: email,

@@ -65,9 +65,9 @@ func (ur UserRepository) GetByEmail(ctx context.Context, email string) (user.Use
 		"image",
 		"created_at",
 		"updated_at",
-	).From("users").Where("email = ?", email).ToSql()
+	).From("users").Where(sq.Eq{"email": email}).Limit(1).ToSql()
 	if err != nil {
-		return user.User{}, fmt.Errorf("can not build select user query: %w", err)
+		return user.User{}, fmt.Errorf("can not build select user by email query: %w", err)
 	}
 
 	u := user.User{Email: email}
@@ -81,10 +81,10 @@ func (ur UserRepository) GetByEmail(ctx context.Context, email string) (user.Use
 		&u.UpdatedAt,
 	); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return user.User{}, fmt.Errorf("can not find user: %w", user.ErrNotFound)
+			return user.User{}, fmt.Errorf("can not find user by email: %w", user.ErrNotFound)
 		}
 
-		return user.User{}, fmt.Errorf("can not find user: %w", err)
+		return user.User{}, fmt.Errorf("can not find user by email: %w", err)
 	}
 
 	return u, nil
@@ -116,9 +116,9 @@ func (ur UserRepository) UpdateByEmail(ctx context.Context, email string, dto us
 
 	sql, args, err := updateBuilder.Suffix(
 		"RETURNING id, username, email, password, bio, image, created_at",
-	).Where("email = ?", email).ToSql()
+	).Where(sq.Eq{"email": email}).ToSql()
 	if err != nil {
-		return user.User{}, fmt.Errorf("can not build update user query: %w", err)
+		return user.User{}, fmt.Errorf("can not build update user by email query: %w", err)
 	}
 
 	u := user.User{UpdatedAt: dto.UpdatedAt}
@@ -132,10 +132,10 @@ func (ur UserRepository) UpdateByEmail(ctx context.Context, email string, dto us
 		&u.CreatedAt,
 	); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return user.User{}, fmt.Errorf("can not find user: %w", user.ErrNotFound)
+			return user.User{}, fmt.Errorf("can not update user by email: %w", user.ErrNotFound)
 		}
 
-		return user.User{}, fmt.Errorf("can not find user: %w", err)
+		return user.User{}, fmt.Errorf("can not update user by email: %w", err)
 	}
 
 	return u, nil
