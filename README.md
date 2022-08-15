@@ -17,12 +17,29 @@
 ## 📖 Contents
 
 - [Technologies](#technologies)
+- [Getting Started](#getting-started)
 - [Contribute](#contribute)
 - [License](#license)
 
 ## ⚡️ Technologies <a id="technologies" />
 
 <img width="70%" src="./assets/diagrams/stack.png" alt="stack" />
+
+## 🍕 Getting Started <a id="getting-started" />
+
+**Setting up environment variables**
+
+Before getting started, create `.env` file following the `.env.example` file.
+
+**Running conduit**
+
+- Docker (recommended)
+
+```
+$ make up
+```
+
+Once you're done working, use `make down` command to stop the docker containers.
 
 ## 👏 Contribute <a id="contribute" />
 
