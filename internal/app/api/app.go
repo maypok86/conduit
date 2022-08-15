@@ -11,8 +11,7 @@ import (
 
 	"github.com/maypok86/conduit/internal/config"
 	httphandler "github.com/maypok86/conduit/internal/controller/http/handler"
-	"github.com/maypok86/conduit/internal/domain/profile"
-	"github.com/maypok86/conduit/internal/domain/user"
+	"github.com/maypok86/conduit/internal/domain"
 	"github.com/maypok86/conduit/internal/repository/psql"
 	"github.com/maypok86/conduit/pkg/hash"
 	"github.com/maypok86/conduit/pkg/httpserver"
@@ -54,17 +53,13 @@ func New(ctx context.Context, logger *zap.Logger) (App, error) {
 		return App{}, fmt.Errorf("failed to create token maker: %w", err)
 	}
 
-	userRepository := psql.NewUserRepository(postgresInstance)
-	userService := user.NewService(userRepository, passwordHasher)
-
-	profileRepository := psql.NewProfileRepository(postgresInstance)
-	profileService := profile.NewService(profileRepository)
+	repositories := psql.NewRepositories(postgresInstance)
+	services := domain.NewServices(repositories, passwordHasher)
 
 	router := httphandler.NewRouter(httphandler.Deps{
-		TokenMaker:     tokenMaker,
-		Logger:         logger,
-		UserService:    userService,
-		ProfileService: profileService,
+		TokenMaker: tokenMaker,
+		Logger:     logger,
+		Services:   services,
 	})
 
 	return App{

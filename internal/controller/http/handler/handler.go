@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/maypok86/conduit/internal/config"
 	"github.com/maypok86/conduit/internal/controller/http/middleware"
+	"github.com/maypok86/conduit/internal/domain"
 	"github.com/maypok86/conduit/pkg/token"
 	"go.uber.org/zap"
 )
@@ -21,10 +22,9 @@ type TokenMaker interface {
 
 // Deps is a http handler dependencies.
 type Deps struct {
-	TokenMaker     TokenMaker
-	Logger         *zap.Logger
-	UserService    UserService
-	ProfileService ProfileService
+	TokenMaker TokenMaker
+	Logger     *zap.Logger
+	Services   domain.Services
 }
 
 // NewRouter returns a new http router.
@@ -44,14 +44,14 @@ func NewRouter(deps Deps) *gin.Engine {
 		newUserHandler(userDeps{
 			router:         api,
 			authMiddleware: authMiddleware,
-			userService:    deps.UserService,
+			userService:    deps.Services.User,
 			tokenMaker:     deps.TokenMaker,
 		})
 
 		newProfileHandler(profileDeps{
 			router:         api,
 			authMiddleware: authMiddleware,
-			profileService: deps.ProfileService,
+			profileService: deps.Services.Profile,
 		})
 	}
 
