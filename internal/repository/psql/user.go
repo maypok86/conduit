@@ -11,7 +11,9 @@ import (
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v4"
 	"github.com/maypok86/conduit/internal/domain/user"
+	"github.com/maypok86/conduit/pkg/logger"
 	"github.com/maypok86/conduit/pkg/postgres"
+	"go.uber.org/zap"
 )
 
 // UserRepository is a user repository.
@@ -41,6 +43,8 @@ func (ur UserRepository) Create(ctx context.Context, dto user.User) (user.User, 
 		return user.User{}, fmt.Errorf("can not build insert user query: %w", err)
 	}
 
+	logger.FromContext(ctx).Debug("create user query", zap.String("sql", sql), zap.Any("args", args))
+
 	if err := ur.db.Pool.QueryRow(ctx, sql, args...).Scan(&dto.ID); err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
@@ -69,6 +73,8 @@ func (ur UserRepository) GetByEmail(ctx context.Context, email string) (user.Use
 	if err != nil {
 		return user.User{}, fmt.Errorf("can not build select user by email query: %w", err)
 	}
+
+	logger.FromContext(ctx).Debug("select user by email query", zap.String("sql", sql), zap.Any("args", args))
 
 	u := user.User{Email: email}
 	if err := ur.db.Pool.QueryRow(ctx, sql, args...).Scan(
@@ -120,6 +126,8 @@ func (ur UserRepository) UpdateByEmail(ctx context.Context, email string, dto us
 	if err != nil {
 		return user.User{}, fmt.Errorf("can not build update user by email query: %w", err)
 	}
+
+	logger.FromContext(ctx).Debug("update user by email query", zap.String("sql", sql), zap.Any("args", args))
 
 	u := user.User{UpdatedAt: dto.UpdatedAt}
 	if err := ur.db.Pool.QueryRow(ctx, sql, args...).Scan(

@@ -8,7 +8,9 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jackc/pgx/v4"
 	"github.com/maypok86/conduit/internal/domain/profile"
+	"github.com/maypok86/conduit/pkg/logger"
 	"github.com/maypok86/conduit/pkg/postgres"
+	"go.uber.org/zap"
 )
 
 // ProfileRepository is a profile repository.
@@ -34,6 +36,8 @@ func (pr ProfileRepository) GetByUsername(ctx context.Context, username string) 
 	if err != nil {
 		return profile.Profile{}, fmt.Errorf("can not build select profile by username query: %w", err)
 	}
+
+	logger.FromContext(ctx).Debug("select profile by username query", zap.String("sql", sql), zap.Any("args", args))
 
 	p := profile.Profile{Username: username}
 	if err := pr.db.Pool.QueryRow(ctx, sql, args...).Scan(
