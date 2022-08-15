@@ -21,9 +21,10 @@ type TokenMaker interface {
 
 // Deps is a http handler dependencies.
 type Deps struct {
-	TokenMaker  TokenMaker
-	Logger      *zap.Logger
-	UserService UserService
+	TokenMaker     TokenMaker
+	Logger         *zap.Logger
+	UserService    UserService
+	ProfileService ProfileService
 }
 
 // NewRouter returns a new http router.
@@ -45,6 +46,12 @@ func NewRouter(deps Deps) *gin.Engine {
 			authMiddleware: authMiddleware,
 			userService:    deps.UserService,
 			tokenMaker:     deps.TokenMaker,
+		})
+
+		newProfileHandler(profileDeps{
+			router:         api,
+			authMiddleware: authMiddleware,
+			profileService: deps.ProfileService,
 		})
 	}
 

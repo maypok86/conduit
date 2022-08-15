@@ -3,7 +3,6 @@ package psql_test
 import (
 	"context"
 	"errors"
-	"fmt"
 	"reflect"
 	"testing"
 	"time"
@@ -23,7 +22,7 @@ import (
 	"go.uber.org/zap"
 )
 
-var errRepository = errors.New("repository error")
+var errUserRepository = errors.New("user repository error")
 
 func mockUserRepository(
 	t *testing.T,
@@ -84,7 +83,7 @@ func TestUserRepository_Create(t *testing.T) {
 		{
 			name: "scan error",
 			mock: func(row *mockPsql.MockRow, pool *mockPsql.MockPgxPool) {
-				row.EXPECT().Scan(gomock.Any()).Return(errRepository).Times(1)
+				row.EXPECT().Scan(gomock.Any()).Return(errUserRepository).Times(1)
 				pool.EXPECT().QueryRow(ctx, expectedSQL, dto.Email, dto.Username, dto.Password).Return(row).Times(1)
 			},
 			args: args{
@@ -175,7 +174,7 @@ func TestUserRepository_GetByEmail(t *testing.T) {
 					gomock.Any(),
 					gomock.Any(),
 					gomock.Any(),
-				).Return(errRepository).Times(1)
+				).Return(errUserRepository).Times(1)
 				pool.EXPECT().QueryRow(ctx, expectedSQL, email).Return(row).Times(1)
 			},
 			args: args{
@@ -217,7 +216,6 @@ func TestUserRepository_GetByEmail(t *testing.T) {
 			tt.mock(mockRow, mockPgxPool)
 
 			got, err := userRepository.GetByEmail(ctx, tt.args.email)
-			fmt.Println(err)
 			require.True(t, (err != nil) == tt.wantErr)
 			require.True(t, reflect.DeepEqual(tt.want, got))
 		})
@@ -292,7 +290,7 @@ func TestUserRepository_UpdateByEmail(t *testing.T) {
 					gomock.Any(),
 					gomock.Any(),
 					gomock.Any(),
-				).Return(errRepository).Times(1)
+				).Return(errUserRepository).Times(1)
 				pool.EXPECT().
 					QueryRow(ctx, expectedSQL, *dto.Username, *dto.Email, *dto.Bio, *dto.Image, dto.UpdatedAt, email).
 					Return(row).
@@ -342,7 +340,6 @@ func TestUserRepository_UpdateByEmail(t *testing.T) {
 			tt.mock(mockRow, mockPgxPool)
 
 			got, err := userRepository.UpdateByEmail(ctx, tt.args.email, tt.args.dto)
-			fmt.Println(err)
 			require.True(t, (err != nil) == tt.wantErr)
 			require.True(t, reflect.DeepEqual(tt.want, got))
 		})

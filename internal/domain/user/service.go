@@ -27,7 +27,7 @@ type Service struct {
 	passwordHasher PasswordHasher
 }
 
-// NewService creates a new UserService.
+// NewService creates a new user service.
 func NewService(userRepository Repository, passwordHasher PasswordHasher) Service {
 	return Service{
 		userRepository: userRepository,

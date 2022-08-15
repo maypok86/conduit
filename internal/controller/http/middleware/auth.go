@@ -14,7 +14,6 @@ import (
 var (
 	errAuthHeaderNotProvided   = errors.New("authorization header is not provided")
 	errInvalidAuthHeaderFormat = errors.New("invalid authorization header format")
-	errPayloadNotFound         = errors.New("payload not found")
 )
 
 //go:generate mockgen -source=auth.go -destination=mocks/auth_test.go -package=middleware_test
@@ -57,17 +56,28 @@ func (a Auth) wrapError(err error, slug string) *authError {
 	}
 }
 
-// Handle is a middleware that parses the authorization header and sets the payload to the context.
-func (a Auth) Handle(c *gin.Context) {
+func (a Auth) handle(c *gin.Context, processAuthError func(c *gin.Context, authErr *authError)) {
 	payload, accessToken, authErr := a.parseAuthHeader(c)
 	if authErr != nil {
-		httperr.Unauthorised(c, authErr.slug, authErr.err)
+		processAuthError(c, authErr)
 		return
 	}
 
 	c.Set(a.authorizationTokenKey, accessToken)
 	c.Set(a.authorizationPayloadKey, payload)
 	c.Next()
+}
+
+// OptionalHandle is a middleware that optional parses the authorization header and sets the payload to the context.
+func (a Auth) OptionalHandle(c *gin.Context) {
+	a.handle(c, func(c *gin.Context, authErr *authError) {})
+}
+
+// Handle is a middleware that parses the authorization header and sets the payload to the context.
+func (a Auth) Handle(c *gin.Context) {
+	a.handle(c, func(c *gin.Context, authErr *authError) {
+		httperr.Unauthorised(c, authErr.slug, authErr.err)
+	})
 }
 
 // GetPayload returns the payload from the context.
@@ -79,8 +89,6 @@ func (a Auth) GetPayload(c *gin.Context) *token.Payload {
 			return payload
 		}
 	}
-
-	httperr.Unauthorised(c, "not-found-payload", errPayloadNotFound)
 
 	return nil
 }

@@ -11,6 +11,7 @@ import (
 
 	"github.com/maypok86/conduit/internal/config"
 	httphandler "github.com/maypok86/conduit/internal/controller/http/handler"
+	"github.com/maypok86/conduit/internal/domain/profile"
 	"github.com/maypok86/conduit/internal/domain/user"
 	"github.com/maypok86/conduit/internal/repository/psql"
 	"github.com/maypok86/conduit/pkg/hash"
@@ -56,10 +57,14 @@ func New(ctx context.Context, logger *zap.Logger) (App, error) {
 	userRepository := psql.NewUserRepository(postgresInstance)
 	userService := user.NewService(userRepository, passwordHasher)
 
+	profileRepository := psql.NewProfileRepository(postgresInstance)
+	profileService := profile.NewService(profileRepository)
+
 	router := httphandler.NewRouter(httphandler.Deps{
-		TokenMaker:  tokenMaker,
-		Logger:      logger,
-		UserService: userService,
+		TokenMaker:     tokenMaker,
+		Logger:         logger,
+		UserService:    userService,
+		ProfileService: profileService,
 	})
 
 	return App{

@@ -1,7 +1,13 @@
 // Package profile represents a profile domain.
 package profile
 
-import "time"
+import (
+	"errors"
+	"time"
+)
+
+// ErrNotFound is an error that indicates that profile not found.
+var ErrNotFound = errors.New("profile not found")
 
 // Profile is a profile entity.
 type Profile struct {
