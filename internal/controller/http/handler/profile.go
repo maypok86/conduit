@@ -16,6 +16,7 @@ import (
 // ProfileService is a profile service.
 type ProfileService interface {
 	GetByUsername(ctx context.Context, username string) (profile.Profile, error)
+	GetWithFollow(ctx context.Context, email string, username string) (profile.Profile, error)
 }
 
 type profileHandler struct {
@@ -57,6 +58,21 @@ func (h profileHandler) getProfile(c *gin.Context) {
 
 	if payload == nil {
 		profileEntity, err := h.profileService.GetByUsername(logger.FromRequestToContext(c), username)
+		if err != nil {
+			httperr.RespondWithSlugError(c, err)
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"profile": getProfileResponse{
+				Username:  profileEntity.Username,
+				Bio:       profileEntity.GetBio(),
+				Image:     profileEntity.GetImage(),
+				Following: profileEntity.Following,
+			},
+		})
+	} else {
+		profileEntity, err := h.profileService.GetWithFollow(logger.FromRequestToContext(c), payload.Email, username)
 		if err != nil {
 			httperr.RespondWithSlugError(c, err)
 			return

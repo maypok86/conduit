@@ -4,6 +4,8 @@ package profile
 import (
 	"errors"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 // ErrNotFound is an error that indicates that profile not found.
@@ -11,6 +13,7 @@ var ErrNotFound = errors.New("profile not found")
 
 // Profile is a profile entity.
 type Profile struct {
+	ID        uuid.UUID
 	Username  string
 	Bio       *string
 	Image     *string

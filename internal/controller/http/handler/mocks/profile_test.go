@@ -49,3 +49,18 @@ func (mr *MockProfileServiceMockRecorder) GetByUsername(ctx, username interface{
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByUsername", reflect.TypeOf((*MockProfileService)(nil).GetByUsername), ctx, username)
 }
+
+// GetWithFollow mocks base method.
+func (m *MockProfileService) GetWithFollow(ctx context.Context, email, username string) (profile.Profile, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetWithFollow", ctx, email, username)
+	ret0, _ := ret[0].(profile.Profile)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetWithFollow indicates an expected call of GetWithFollow.
+func (mr *MockProfileServiceMockRecorder) GetWithFollow(ctx, email, username interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWithFollow", reflect.TypeOf((*MockProfileService)(nil).GetWithFollow), ctx, email, username)
+}

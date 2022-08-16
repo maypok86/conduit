@@ -9,6 +9,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
+	uuid "github.com/google/uuid"
 	profile "github.com/maypok86/conduit/internal/domain/profile"
 )
 
@@ -33,6 +34,36 @@ func NewMockRepository(ctrl *gomock.Controller) *MockRepository {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 	return m.recorder
+}
+
+// CheckFollowing mocks base method.
+func (m *MockRepository) CheckFollowing(ctx context.Context, email string, followeeID uuid.UUID) (profile.Profile, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CheckFollowing", ctx, email, followeeID)
+	ret0, _ := ret[0].(profile.Profile)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CheckFollowing indicates an expected call of CheckFollowing.
+func (mr *MockRepositoryMockRecorder) CheckFollowing(ctx, email, followeeID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckFollowing", reflect.TypeOf((*MockRepository)(nil).CheckFollowing), ctx, email, followeeID)
+}
+
+// GetByEmail mocks base method.
+func (m *MockRepository) GetByEmail(ctx context.Context, email string) (profile.Profile, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByEmail", ctx, email)
+	ret0, _ := ret[0].(profile.Profile)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByEmail indicates an expected call of GetByEmail.
+func (mr *MockRepositoryMockRecorder) GetByEmail(ctx, email interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByEmail", reflect.TypeOf((*MockRepository)(nil).GetByEmail), ctx, email)
 }
 
 // GetByUsername mocks base method.
