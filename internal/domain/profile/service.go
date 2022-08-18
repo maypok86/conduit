@@ -15,6 +15,7 @@ type Repository interface {
 	GetByUsername(ctx context.Context, username string) (Profile, error)
 	GetByEmail(ctx context.Context, email string) (Profile, error)
 	CheckFollowing(ctx context.Context, email string, followeeID uuid.UUID) (Profile, error)
+	Follow(ctx context.Context, followeeID, followerID uuid.UUID) error
 }
 
 // Service a profile service interface.
@@ -50,7 +51,7 @@ func (s Service) GetByEmail(ctx context.Context, email string) (Profile, error) 
 }
 
 // GetWithFollow gets a profile with follow checking.
-func (s Service) GetWithFollow(ctx context.Context, email string, username string) (Profile, error) {
+func (s Service) GetWithFollow(ctx context.Context, email, username string) (Profile, error) {
 	profile, err := s.GetByUsername(ctx, username)
 	if err != nil {
 		return Profile{}, err
@@ -66,4 +67,25 @@ func (s Service) GetWithFollow(ctx context.Context, email string, username strin
 	}
 
 	return checkedProfile, nil
+}
+
+// Follow make a follow relationship.
+func (s Service) Follow(ctx context.Context, email, username string) (Profile, error) {
+	followee, err := s.GetByUsername(ctx, username)
+	if err != nil {
+		return Profile{}, err
+	}
+
+	follower, err := s.GetByEmail(ctx, email)
+	if err != nil {
+		return Profile{}, err
+	}
+
+	if err := s.profileRepository.Follow(ctx, followee.ID, follower.ID); err != nil {
+		return Profile{}, fmt.Errorf("failed to follow: %w", err)
+	}
+
+	follower.Following = true
+
+	return follower, nil
 }

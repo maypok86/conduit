@@ -16,7 +16,8 @@ import (
 // ProfileService is a profile service.
 type ProfileService interface {
 	GetByUsername(ctx context.Context, username string) (profile.Profile, error)
-	GetWithFollow(ctx context.Context, email string, username string) (profile.Profile, error)
+	GetWithFollow(ctx context.Context, email, username string) (profile.Profile, error)
+	Follow(ctx context.Context, email, username string) (profile.Profile, error)
 }
 
 type profileHandler struct {
@@ -45,6 +46,10 @@ func newProfileHandler(deps profileDeps) {
 	}
 }
 
+type getProfileRequest struct {
+	Username string `uri:"username" binding:"required"`
+}
+
 type getProfileResponse struct {
 	Username  string `json:"username"`
 	Bio       string `json:"bio"`
@@ -53,7 +58,13 @@ type getProfileResponse struct {
 }
 
 func (h profileHandler) getProfile(c *gin.Context) {
-	username := c.Param("username")
+	var request getProfileRequest
+	if err := c.ShouldBindUri(&request); err != nil {
+		httperr.BadRequest(c, "invalid-request", err)
+		return
+	}
+
+	username := request.Username
 	payload := h.authMiddleware.GetPayload(c)
 
 	if payload == nil {
@@ -89,9 +100,39 @@ func (h profileHandler) getProfile(c *gin.Context) {
 	}
 }
 
+type followRequest struct {
+	Username string `uri:"username" binding:"required"`
+}
+
+type followResponse struct {
+	Username  string `json:"username"`
+	Bio       string `json:"bio"`
+	Image     string `json:"image"`
+	Following bool   `json:"following"`
+}
+
 func (h profileHandler) follow(c *gin.Context) {
+	var request followRequest
+	if err := c.ShouldBindUri(&request); err != nil {
+		httperr.BadRequest(c, "invalid-request", err)
+		return
+	}
+
+	payload := h.authMiddleware.GetPayload(c)
+
+	profileEntity, err := h.profileService.Follow(logger.FromRequestToContext(c), payload.Email, request.Username)
+	if err != nil {
+		httperr.RespondWithSlugError(c, err)
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{
-		"message": "follow",
+		"profile": followResponse{
+			Username:  profileEntity.Username,
+			Bio:       profileEntity.GetBio(),
+			Image:     profileEntity.GetImage(),
+			Following: profileEntity.Following,
+		},
 	})
 }
 

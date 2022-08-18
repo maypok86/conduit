@@ -51,6 +51,20 @@ func (mr *MockRepositoryMockRecorder) CheckFollowing(ctx, email, followeeID inte
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckFollowing", reflect.TypeOf((*MockRepository)(nil).CheckFollowing), ctx, email, followeeID)
 }
 
+// Follow mocks base method.
+func (m *MockRepository) Follow(ctx context.Context, followeeID, followerID uuid.UUID) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Follow", ctx, followeeID, followerID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Follow indicates an expected call of Follow.
+func (mr *MockRepositoryMockRecorder) Follow(ctx, followeeID, followerID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Follow", reflect.TypeOf((*MockRepository)(nil).Follow), ctx, followeeID, followerID)
+}
+
 // GetByEmail mocks base method.
 func (m *MockRepository) GetByEmail(ctx context.Context, email string) (profile.Profile, error) {
 	m.ctrl.T.Helper()

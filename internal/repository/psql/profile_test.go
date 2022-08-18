@@ -331,3 +331,61 @@ func TestProfileRepository_GetWithFollow(t *testing.T) {
 		})
 	}
 }
+
+func TestProfileRepository_Follow(t *testing.T) {
+	t.Parallel()
+
+	ctx := logger.ContextWithLogger(context.Background(), zap.L())
+	expectedSQL := "INSERT INTO follows (followee_id,follower_id) VALUES ($1,$2)"
+	followeeID := uuid.New()
+	followerID := uuid.New()
+
+	type args struct {
+		followeeID uuid.UUID
+		followerID uuid.UUID
+	}
+
+	tests := []struct {
+		name    string
+		mock    func(*mockPsql.MockPgxPool)
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "creation follow",
+			mock: func(pool *mockPsql.MockPgxPool) {
+				pool.EXPECT().Exec(ctx, expectedSQL, followeeID, followerID).Return([]byte{}, nil).Times(1)
+			},
+			args: args{
+				followeeID: followeeID,
+				followerID: followerID,
+			},
+		},
+		{
+			name: "exec error",
+			mock: func(pool *mockPsql.MockPgxPool) {
+				pool.EXPECT().Exec(ctx, expectedSQL, followeeID, followerID).Return(nil, errProfileRepository).Times(1)
+			},
+			args: args{
+				followeeID: followeeID,
+				followerID: followerID,
+			},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			profileRepository, mockPgxPool, _ := mockProfileRepository(t)
+
+			tt.mock(mockPgxPool)
+
+			err := profileRepository.Follow(ctx, tt.args.followeeID, tt.args.followerID)
+			require.True(t, (err != nil) == tt.wantErr)
+		})
+	}
+}

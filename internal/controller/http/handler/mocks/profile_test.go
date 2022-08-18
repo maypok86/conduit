@@ -35,6 +35,21 @@ func (m *MockProfileService) EXPECT() *MockProfileServiceMockRecorder {
 	return m.recorder
 }
 
+// Follow mocks base method.
+func (m *MockProfileService) Follow(ctx context.Context, email, username string) (profile.Profile, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Follow", ctx, email, username)
+	ret0, _ := ret[0].(profile.Profile)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Follow indicates an expected call of Follow.
+func (mr *MockProfileServiceMockRecorder) Follow(ctx, email, username interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Follow", reflect.TypeOf((*MockProfileService)(nil).Follow), ctx, email, username)
+}
+
 // GetByUsername mocks base method.
 func (m *MockProfileService) GetByUsername(ctx context.Context, username string) (profile.Profile, error) {
 	m.ctrl.T.Helper()

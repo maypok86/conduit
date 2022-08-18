@@ -136,3 +136,22 @@ func (pr ProfileRepository) CheckFollowing(
 
 	return p, nil
 }
+
+// Follow adds follow relationship.
+func (pr ProfileRepository) Follow(ctx context.Context, followeeID, followerID uuid.UUID) error {
+	sql, args, err := pr.db.Builder.Insert("follows").
+		Columns("followee_id", "follower_id").
+		Values(followeeID, followerID).
+		ToSql()
+	if err != nil {
+		return fmt.Errorf("can not build follow query: %w", err)
+	}
+
+	logger.FromContext(ctx).Debug("follow query", zap.String("sql", sql), zap.Any("args", args))
+
+	if _, err := pr.db.Pool.Exec(ctx, sql, args...); err != nil {
+		return fmt.Errorf("can not follow: %w", err)
+	}
+
+	return nil
+}
