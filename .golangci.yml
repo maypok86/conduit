@@ -33,6 +33,7 @@ issues:
       linters:
         - varnamelen
         - funlen
+        - dupl
   exclude-use-default: false
   max-issues-per-linter: 100
   max-same-issues: 4

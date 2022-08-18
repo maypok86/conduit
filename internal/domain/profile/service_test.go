@@ -23,6 +23,7 @@ var (
 	errGetWithFollowRepository  = fmt.Errorf("get with follow repository error: %w", profile.ErrNotFound)
 	errCheckFollowingRepository = errors.New("check following repository error")
 	errFollowRepository         = errors.New("follow repository error")
+	errUnfollowRepository       = errors.New("unfollow repository error")
 )
 
 func mockService(t *testing.T) (profile.Service, *MockRepository) {
@@ -362,6 +363,102 @@ func TestService_Follow(t *testing.T) {
 			tt.mock(repository)
 
 			got, err := service.Follow(ctx, tt.args.email, tt.args.followeeUsername)
+			require.True(t, (err != nil) == tt.wantErr)
+			require.True(t, reflect.DeepEqual(tt.want, got))
+		})
+	}
+}
+
+func TestService_Unfollow(t *testing.T) {
+	t.Parallel()
+
+	ctx := logger.ContextWithLogger(context.Background(), zap.L())
+	email := faker.Email()
+
+	followee := createProfile(t, false)
+	follower := createProfile(t, true)
+	realFollower := follower
+	realFollower.Following = false
+
+	type args struct {
+		followeeUsername string
+		email            string
+	}
+
+	tests := []struct {
+		name    string
+		mock    func(*MockRepository)
+		args    args
+		want    profile.Profile
+		wantErr bool
+	}{
+		{
+			name: "success unfollow",
+			mock: func(repository *MockRepository) {
+				repository.EXPECT().GetByUsername(ctx, followee.Username).Return(followee, nil)
+				repository.EXPECT().GetByEmail(ctx, email).Return(follower, nil)
+				repository.EXPECT().Unfollow(ctx, followee.ID, follower.ID).Return(nil)
+			},
+			args: args{
+				followeeUsername: followee.Username,
+				email:            email,
+			},
+			want: realFollower,
+		},
+		{
+			name: "get by username error",
+			mock: func(repository *MockRepository) {
+				repository.EXPECT().
+					GetByUsername(ctx, followee.Username).
+					Return(profile.Profile{}, errGetByUsernameRepository)
+			},
+			args: args{
+				followeeUsername: followee.Username,
+				email:            email,
+			},
+			want:    profile.Profile{},
+			wantErr: true,
+		},
+		{
+			name: "get by email error",
+			mock: func(repository *MockRepository) {
+				repository.EXPECT().GetByUsername(ctx, followee.Username).Return(followee, nil)
+				repository.EXPECT().GetByEmail(ctx, email).Return(profile.Profile{}, errGetByEmailRepository)
+			},
+			args: args{
+				followeeUsername: followee.Username,
+				email:            email,
+			},
+			want:    profile.Profile{},
+			wantErr: true,
+		},
+		{
+			name: "unfollow error",
+			mock: func(repository *MockRepository) {
+				repository.EXPECT().GetByUsername(ctx, followee.Username).Return(followee, nil)
+				repository.EXPECT().GetByEmail(ctx, email).Return(follower, nil)
+				repository.EXPECT().Unfollow(ctx, followee.ID, follower.ID).Return(errUnfollowRepository)
+			},
+			args: args{
+				followeeUsername: followee.Username,
+				email:            email,
+			},
+			want:    profile.Profile{},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			service, repository := mockService(t)
+
+			tt.mock(repository)
+
+			got, err := service.Unfollow(ctx, tt.args.email, tt.args.followeeUsername)
 			require.True(t, (err != nil) == tt.wantErr)
 			require.True(t, reflect.DeepEqual(tt.want, got))
 		})

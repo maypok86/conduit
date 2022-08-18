@@ -18,6 +18,7 @@ type ProfileService interface {
 	GetByUsername(ctx context.Context, username string) (profile.Profile, error)
 	GetWithFollow(ctx context.Context, email, username string) (profile.Profile, error)
 	Follow(ctx context.Context, email, username string) (profile.Profile, error)
+	Unfollow(ctx context.Context, email, username string) (profile.Profile, error)
 }
 
 type profileHandler struct {
@@ -42,7 +43,7 @@ func newProfileHandler(deps profileDeps) {
 	profilesGroup := deps.router.Group("/profiles", deps.authMiddleware.Handle)
 	{
 		profilesGroup.POST("/:username/follow", handler.follow)
-		profilesGroup.DELETE("/:username/unfollow", handler.unfollow)
+		profilesGroup.DELETE("/:username/follow", handler.unfollow)
 	}
 }
 
@@ -136,8 +137,38 @@ func (h profileHandler) follow(c *gin.Context) {
 	})
 }
 
+type unfollowRequest struct {
+	Username string `uri:"username" binding:"required"`
+}
+
+type unfollowResponse struct {
+	Username  string `json:"username"`
+	Bio       string `json:"bio"`
+	Image     string `json:"image"`
+	Following bool   `json:"following"`
+}
+
 func (h profileHandler) unfollow(c *gin.Context) {
+	var request unfollowRequest
+	if err := c.ShouldBindUri(&request); err != nil {
+		httperr.BadRequest(c, "invalid-request", err)
+		return
+	}
+
+	payload := h.authMiddleware.GetPayload(c)
+
+	profileEntity, err := h.profileService.Unfollow(logger.FromRequestToContext(c), payload.Email, request.Username)
+	if err != nil {
+		httperr.RespondWithSlugError(c, err)
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{
-		"message": "unfollow",
+		"profile": unfollowResponse{
+			Username:  profileEntity.Username,
+			Bio:       profileEntity.GetBio(),
+			Image:     profileEntity.GetImage(),
+			Following: profileEntity.Following,
+		},
 	})
 }

@@ -389,3 +389,67 @@ func TestProfileRepository_Follow(t *testing.T) {
 		})
 	}
 }
+
+func TestProfileRepository_Unfollow(t *testing.T) {
+	t.Parallel()
+
+	ctx := logger.ContextWithLogger(context.Background(), zap.L())
+	expectedSQL := "DELETE FROM follows WHERE (followee_id = $1 AND follower_id = $2)"
+	followeeID := uuid.New()
+	followerID := uuid.New()
+
+	type args struct {
+		followeeID uuid.UUID
+		followerID uuid.UUID
+	}
+
+	tests := []struct {
+		name    string
+		mock    func(*mockPsql.MockPgxPool)
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "delete follow success",
+			mock: func(pool *mockPsql.MockPgxPool) {
+				pool.EXPECT().
+					Exec(ctx, expectedSQL, followeeID.String(), followerID.String()).
+					Return([]byte{}, nil).
+					Times(1)
+			},
+			args: args{
+				followeeID: followeeID,
+				followerID: followerID,
+			},
+		},
+		{
+			name: "exec error",
+			mock: func(pool *mockPsql.MockPgxPool) {
+				pool.EXPECT().
+					Exec(ctx, expectedSQL, followeeID.String(), followerID.String()).
+					Return(nil, errProfileRepository).
+					Times(1)
+			},
+			args: args{
+				followeeID: followeeID,
+				followerID: followerID,
+			},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			profileRepository, mockPgxPool, _ := mockProfileRepository(t)
+
+			tt.mock(mockPgxPool)
+
+			err := profileRepository.Unfollow(ctx, tt.args.followeeID, tt.args.followerID)
+			require.True(t, (err != nil) == tt.wantErr)
+		})
+	}
+}

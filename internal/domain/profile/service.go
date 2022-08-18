@@ -16,6 +16,7 @@ type Repository interface {
 	GetByEmail(ctx context.Context, email string) (Profile, error)
 	CheckFollowing(ctx context.Context, email string, followeeID uuid.UUID) (Profile, error)
 	Follow(ctx context.Context, followeeID, followerID uuid.UUID) error
+	Unfollow(ctx context.Context, followeeID, followerID uuid.UUID) error
 }
 
 // Service a profile service interface.
@@ -86,6 +87,27 @@ func (s Service) Follow(ctx context.Context, email, username string) (Profile, e
 	}
 
 	follower.Following = true
+
+	return follower, nil
+}
+
+// Unfollow delete a follow relationship.
+func (s Service) Unfollow(ctx context.Context, email, username string) (Profile, error) {
+	followee, err := s.GetByUsername(ctx, username)
+	if err != nil {
+		return Profile{}, err
+	}
+
+	follower, err := s.GetByEmail(ctx, email)
+	if err != nil {
+		return Profile{}, err
+	}
+
+	if err := s.profileRepository.Unfollow(ctx, followee.ID, follower.ID); err != nil {
+		return Profile{}, fmt.Errorf("failed to unfollow: %w", err)
+	}
+
+	follower.Following = false
 
 	return follower, nil
 }

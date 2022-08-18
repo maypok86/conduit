@@ -155,3 +155,21 @@ func (pr ProfileRepository) Follow(ctx context.Context, followeeID, followerID u
 
 	return nil
 }
+
+// Unfollow removes follow relationship.
+func (pr ProfileRepository) Unfollow(ctx context.Context, followeeID, followerID uuid.UUID) error {
+	sql, args, err := pr.db.Builder.Delete("follows").
+		Where(sq.And{sq.Eq{"followee_id": followeeID}, sq.Eq{"follower_id": followerID}}).
+		ToSql()
+	if err != nil {
+		return fmt.Errorf("can not build unfollow query: %w", err)
+	}
+
+	logger.FromContext(ctx).Debug("unfollow query", zap.String("sql", sql), zap.Any("args", args))
+
+	if _, err := pr.db.Pool.Exec(ctx, sql, args...); err != nil {
+		return fmt.Errorf("can not unfollow: %w", err)
+	}
+
+	return nil
+}

@@ -79,3 +79,18 @@ func (mr *MockProfileServiceMockRecorder) GetWithFollow(ctx, email, username int
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWithFollow", reflect.TypeOf((*MockProfileService)(nil).GetWithFollow), ctx, email, username)
 }
+
+// Unfollow mocks base method.
+func (m *MockProfileService) Unfollow(ctx context.Context, email, username string) (profile.Profile, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Unfollow", ctx, email, username)
+	ret0, _ := ret[0].(profile.Profile)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Unfollow indicates an expected call of Unfollow.
+func (mr *MockProfileServiceMockRecorder) Unfollow(ctx, email, username interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Unfollow", reflect.TypeOf((*MockProfileService)(nil).Unfollow), ctx, email, username)
+}

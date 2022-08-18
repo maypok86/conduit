@@ -94,3 +94,17 @@ func (mr *MockRepositoryMockRecorder) GetByUsername(ctx, username interface{}) *
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByUsername", reflect.TypeOf((*MockRepository)(nil).GetByUsername), ctx, username)
 }
+
+// Unfollow mocks base method.
+func (m *MockRepository) Unfollow(ctx context.Context, followeeID, followerID uuid.UUID) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Unfollow", ctx, followeeID, followerID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Unfollow indicates an expected call of Unfollow.
+func (mr *MockRepositoryMockRecorder) Unfollow(ctx, followeeID, followerID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Unfollow", reflect.TypeOf((*MockRepository)(nil).Unfollow), ctx, followeeID, followerID)
+}
