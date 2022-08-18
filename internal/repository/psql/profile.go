@@ -94,47 +94,26 @@ func (pr ProfileRepository) GetByEmail(ctx context.Context, email string) (profi
 	return p, nil
 }
 
-// CheckFollowing returns profile by id with follow.
-func (pr ProfileRepository) CheckFollowing(
-	ctx context.Context,
-	email string,
-	followeeID uuid.UUID,
-) (profile.Profile, error) {
-	sql, args, err := pr.db.Builder.Select(
-		"id",
-		"username",
-		"bio",
-		"image",
-		"users.created_at",
-		"users.updated_at",
-	).From("users").Join("follows ON users.id = follows.follower_id").Where(
-		sq.And{sq.Eq{"email": email}, sq.Eq{"followee_id": followeeID}},
-	).Limit(1).ToSql()
+// CheckFollowing checks if user is following another user.
+func (pr ProfileRepository) CheckFollowing(ctx context.Context, followeeID, followerID uuid.UUID) error {
+	sql, args, err := pr.db.Builder.Select("followee_id", "follower_id").From("follows").
+		Where(sq.And{sq.Eq{"followee_id": followeeID}, sq.Eq{"follower_id": followerID}}).
+		Limit(1).ToSql()
 	if err != nil {
-		return profile.Profile{}, fmt.Errorf("can not build check following profile query: %w", err)
+		return fmt.Errorf("can not build check following query: %w", err)
 	}
 
-	logger.FromContext(ctx).Debug("select profile with follow query", zap.String("sql", sql), zap.Any("args", args))
+	logger.FromContext(ctx).Debug("check following query", zap.String("sql", sql), zap.Any("args", args))
 
-	p := profile.Profile{
-		Following: true,
-	}
-	if err := pr.db.Pool.QueryRow(ctx, sql, args...).Scan(
-		&p.ID,
-		&p.Username,
-		&p.Bio,
-		&p.Image,
-		&p.CreatedAt,
-		&p.UpdatedAt,
-	); err != nil {
+	if err := pr.db.Pool.QueryRow(ctx, sql, args...).Scan(&followeeID, &followerID); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return profile.Profile{}, fmt.Errorf("can not check following profile: %w", profile.ErrNotFound)
+			return fmt.Errorf("can not check following: %w", profile.ErrNotFound)
 		}
 
-		return profile.Profile{}, fmt.Errorf("can not check following profile: %w", err)
+		return fmt.Errorf("can not check following: %w", err)
 	}
 
-	return p, nil
+	return nil
 }
 
 // Follow adds follow relationship.

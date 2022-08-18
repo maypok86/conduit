@@ -14,7 +14,7 @@ import (
 type Repository interface {
 	GetByUsername(ctx context.Context, username string) (Profile, error)
 	GetByEmail(ctx context.Context, email string) (Profile, error)
-	CheckFollowing(ctx context.Context, email string, followeeID uuid.UUID) (Profile, error)
+	CheckFollowing(ctx context.Context, followeeID, followerID uuid.UUID) error
 	Follow(ctx context.Context, followeeID, followerID uuid.UUID) error
 	Unfollow(ctx context.Context, followeeID, followerID uuid.UUID) error
 }
@@ -53,21 +53,28 @@ func (s Service) GetByEmail(ctx context.Context, email string) (Profile, error) 
 
 // GetWithFollow gets a profile with follow checking.
 func (s Service) GetWithFollow(ctx context.Context, email, username string) (Profile, error) {
-	profile, err := s.GetByUsername(ctx, username)
+	followee, err := s.GetByUsername(ctx, username)
 	if err != nil {
 		return Profile{}, err
 	}
 
-	checkedProfile, err := s.profileRepository.CheckFollowing(ctx, email, profile.ID)
+	follower, err := s.GetByEmail(ctx, email)
 	if err != nil {
+		return Profile{}, err
+	}
+
+	if err := s.profileRepository.CheckFollowing(ctx, followee.ID, follower.ID); err != nil {
 		if errors.Is(err, ErrNotFound) {
-			return s.GetByEmail(ctx, email)
+			followee.Following = false
+			return followee, nil
 		}
 
 		return Profile{}, fmt.Errorf("failed to check following: %w", err)
 	}
 
-	return checkedProfile, nil
+	followee.Following = true
+
+	return followee, nil
 }
 
 // Follow make a follow relationship.
@@ -86,9 +93,9 @@ func (s Service) Follow(ctx context.Context, email, username string) (Profile, e
 		return Profile{}, fmt.Errorf("failed to follow: %w", err)
 	}
 
-	follower.Following = true
+	followee.Following = true
 
-	return follower, nil
+	return followee, nil
 }
 
 // Unfollow delete a follow relationship.
@@ -107,7 +114,7 @@ func (s Service) Unfollow(ctx context.Context, email, username string) (Profile,
 		return Profile{}, fmt.Errorf("failed to unfollow: %w", err)
 	}
 
-	follower.Following = false
+	followee.Following = false
 
-	return follower, nil
+	return followee, nil
 }

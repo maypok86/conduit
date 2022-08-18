@@ -235,62 +235,56 @@ func TestProfileRepository_GetWithFollow(t *testing.T) {
 	t.Parallel()
 
 	ctx := logger.ContextWithLogger(context.Background(), zap.L())
-	expectedSQL := "SELECT id, username, bio, image, users.created_at, users.updated_at FROM users JOIN follows ON users.id = follows.follower_id WHERE (email = $1 AND followee_id = $2) LIMIT 1" //nolint:lll
-	email := faker.Email()
+	expectedSQL := "SELECT followee_id, follower_id FROM follows WHERE (followee_id = $1 AND follower_id = $2) LIMIT 1"
 	followeeID := uuid.New()
-	profileEntity := profile.Profile{
-		Following: true,
-	}
+	followerID := uuid.New()
 
 	type args struct {
-		email      string
 		followeeID uuid.UUID
+		followerID uuid.UUID
 	}
 
 	tests := []struct {
 		name    string
-		mock    func(*mockPsql.MockRow, *mockPsql.MockPgxPool)
+		mock    func(row *mockPsql.MockRow, pool *mockPsql.MockPgxPool)
 		args    args
-		want    profile.Profile
 		wantErr bool
 	}{
 		{
-			name: "success get by username",
+			name: "exist follow",
 			mock: func(row *mockPsql.MockRow, pool *mockPsql.MockPgxPool) {
 				row.EXPECT().Scan(
-					gomock.Any(),
-					gomock.Any(),
-					gomock.Any(),
-					gomock.Any(),
 					gomock.Any(),
 					gomock.Any(),
 				).Return(nil).Times(1)
-				pool.EXPECT().QueryRow(ctx, expectedSQL, email, gomock.Any()).Return(row).Times(1)
+
+				pool.EXPECT().
+					QueryRow(ctx, expectedSQL, followeeID.String(), followerID.String()).
+					Return(row).
+					Times(1)
 			},
 			args: args{
-				email:      email,
 				followeeID: followeeID,
+				followerID: followerID,
 			},
-			want: profileEntity,
 		},
 		{
-			name: "scan error",
+			name: "exec error",
 			mock: func(row *mockPsql.MockRow, pool *mockPsql.MockPgxPool) {
 				row.EXPECT().Scan(
 					gomock.Any(),
 					gomock.Any(),
-					gomock.Any(),
-					gomock.Any(),
-					gomock.Any(),
-					gomock.Any(),
 				).Return(errProfileRepository).Times(1)
-				pool.EXPECT().QueryRow(ctx, expectedSQL, email, gomock.Any()).Return(row).Times(1)
+
+				pool.EXPECT().
+					QueryRow(ctx, expectedSQL, followeeID.String(), followerID.String()).
+					Return(row).
+					Times(1)
 			},
 			args: args{
-				email:      email,
 				followeeID: followeeID,
+				followerID: followerID,
 			},
-			want:    profile.Profile{},
 			wantErr: true,
 		},
 		{
@@ -299,18 +293,17 @@ func TestProfileRepository_GetWithFollow(t *testing.T) {
 				row.EXPECT().Scan(
 					gomock.Any(),
 					gomock.Any(),
-					gomock.Any(),
-					gomock.Any(),
-					gomock.Any(),
-					gomock.Any(),
 				).Return(pgx.ErrNoRows).Times(1)
-				pool.EXPECT().QueryRow(ctx, expectedSQL, email, gomock.Any()).Return(row).Times(1)
+
+				pool.EXPECT().
+					QueryRow(ctx, expectedSQL, followeeID.String(), followerID.String()).
+					Return(row).
+					Times(1)
 			},
 			args: args{
-				email:      email,
 				followeeID: followeeID,
+				followerID: followerID,
 			},
-			want:    profile.Profile{},
 			wantErr: true,
 		},
 	}
@@ -325,9 +318,8 @@ func TestProfileRepository_GetWithFollow(t *testing.T) {
 
 			tt.mock(mockRow, mockPgxPool)
 
-			got, err := profileRepository.CheckFollowing(ctx, tt.args.email, tt.args.followeeID)
+			err := profileRepository.CheckFollowing(ctx, tt.args.followeeID, tt.args.followerID)
 			require.True(t, (err != nil) == tt.wantErr)
-			require.True(t, reflect.DeepEqual(tt.want, got))
 		})
 	}
 }

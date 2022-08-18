@@ -20,7 +20,7 @@ import (
 var (
 	errGetByUsernameRepository  = errors.New("get by username repository error")
 	errGetByEmailRepository     = errors.New("get by email repository error")
-	errGetWithFollowRepository  = fmt.Errorf("get with follow repository error: %w", profile.ErrNotFound)
+	errNotFoundFollowRepository = fmt.Errorf("not found follow repository: %w", profile.ErrNotFound)
 	errCheckFollowingRepository = errors.New("check following repository error")
 	errFollowRepository         = errors.New("follow repository error")
 	errUnfollowRepository       = errors.New("unfollow repository error")
@@ -182,9 +182,9 @@ func TestService_GetWithFollow(t *testing.T) {
 	email := faker.Email()
 
 	followee := createProfile(t, false)
-	validProfile := createProfile(t, true)
-	notFoundProfile := validProfile
-	notFoundProfile.Following = false
+	follower := createProfile(t, false)
+	realFollowee := followee
+	realFollowee.Following = true
 
 	type args struct {
 		followeeUsername string
@@ -199,16 +199,17 @@ func TestService_GetWithFollow(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "success get user by email",
+			name: "success get user with follow",
 			mock: func(repository *MockRepository) {
 				repository.EXPECT().GetByUsername(ctx, followee.Username).Return(followee, nil)
-				repository.EXPECT().CheckFollowing(ctx, email, followee.ID).Return(validProfile, nil)
+				repository.EXPECT().GetByEmail(ctx, email).Return(follower, nil)
+				repository.EXPECT().CheckFollowing(ctx, followee.ID, follower.ID).Return(nil)
 			},
 			args: args{
 				followeeUsername: followee.Username,
 				email:            email,
 			},
-			want: validProfile,
+			want: realFollowee,
 		},
 		{
 			name: "get by username error",
@@ -225,27 +226,51 @@ func TestService_GetWithFollow(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "not found following error",
+			name: "get by username error",
 			mock: func(repository *MockRepository) {
-				repository.EXPECT().GetByUsername(ctx, followee.Username).Return(followee, nil)
 				repository.EXPECT().
-					CheckFollowing(ctx, email, followee.ID).
-					Return(notFoundProfile, errGetWithFollowRepository)
-				repository.EXPECT().GetByEmail(ctx, email).Return(notFoundProfile, nil)
+					GetByUsername(ctx, followee.Username).
+					Return(profile.Profile{}, errGetByUsernameRepository)
 			},
 			args: args{
 				followeeUsername: followee.Username,
 				email:            email,
 			},
-			want: notFoundProfile,
+			want:    profile.Profile{},
+			wantErr: true,
 		},
 		{
-			name: "checking following error",
+			name: "get by email error",
 			mock: func(repository *MockRepository) {
 				repository.EXPECT().GetByUsername(ctx, followee.Username).Return(followee, nil)
-				repository.EXPECT().
-					CheckFollowing(ctx, email, followee.ID).
-					Return(profile.Profile{}, errCheckFollowingRepository)
+				repository.EXPECT().GetByEmail(ctx, email).Return(profile.Profile{}, errGetByEmailRepository)
+			},
+			args: args{
+				followeeUsername: followee.Username,
+				email:            email,
+			},
+			want:    profile.Profile{},
+			wantErr: true,
+		},
+		{
+			name: "not found follow error",
+			mock: func(repository *MockRepository) {
+				repository.EXPECT().GetByUsername(ctx, followee.Username).Return(followee, nil)
+				repository.EXPECT().GetByEmail(ctx, email).Return(follower, nil)
+				repository.EXPECT().CheckFollowing(ctx, followee.ID, follower.ID).Return(errNotFoundFollowRepository)
+			},
+			args: args{
+				followeeUsername: followee.Username,
+				email:            email,
+			},
+			want: followee,
+		},
+		{
+			name: "check following error",
+			mock: func(repository *MockRepository) {
+				repository.EXPECT().GetByUsername(ctx, followee.Username).Return(followee, nil)
+				repository.EXPECT().GetByEmail(ctx, email).Return(follower, nil)
+				repository.EXPECT().CheckFollowing(ctx, followee.ID, follower.ID).Return(errCheckFollowingRepository)
 			},
 			args: args{
 				followeeUsername: followee.Username,
@@ -281,8 +306,8 @@ func TestService_Follow(t *testing.T) {
 
 	followee := createProfile(t, false)
 	follower := createProfile(t, false)
-	realFollower := follower
-	realFollower.Following = true
+	realFollowee := followee
+	realFollowee.Following = true
 
 	type args struct {
 		followeeUsername string
@@ -307,7 +332,7 @@ func TestService_Follow(t *testing.T) {
 				followeeUsername: followee.Username,
 				email:            email,
 			},
-			want: realFollower,
+			want: realFollowee,
 		},
 		{
 			name: "get by username error",
@@ -377,8 +402,8 @@ func TestService_Unfollow(t *testing.T) {
 
 	followee := createProfile(t, false)
 	follower := createProfile(t, true)
-	realFollower := follower
-	realFollower.Following = false
+	realFollowee := followee
+	realFollowee.Following = false
 
 	type args struct {
 		followeeUsername string
@@ -403,7 +428,7 @@ func TestService_Unfollow(t *testing.T) {
 				followeeUsername: followee.Username,
 				email:            email,
 			},
-			want: realFollower,
+			want: realFollowee,
 		},
 		{
 			name: "get by username error",
