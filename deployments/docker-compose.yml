@@ -61,9 +61,9 @@ services:
       - db_data:/var/lib/postgresql/data
     healthcheck:
       test: pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DBNAME}
-      interval: 1s
-      timeout: 3s
-      retries: 15
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 volumes:
   db_data:

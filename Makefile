@@ -1,5 +1,3 @@
-SHELL := /bin/bash
-
 PROJECT := "conduit"
 
 BIN := "./bin/api"
